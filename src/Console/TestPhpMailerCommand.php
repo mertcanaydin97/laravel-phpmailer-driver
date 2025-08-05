@@ -42,7 +42,7 @@ class TestPhpMailerCommand extends Command
         $this->info('✅ Mail configuration found');
 
         // Check if phpmailer mailer exists
-        $mailers = $mailConfig['mailers'] ?? [];
+        $mailers = isset($mailConfig['mailers']) ? $mailConfig['mailers'] : array();
         if (!isset($mailers['phpmailer'])) {
             $this->warn('⚠️  PHPMailer mailer not found in config/mail.php');
             $this->info('   You need to add this to your config/mail.php:');
