@@ -12,37 +12,37 @@ class PhpMailerTransport extends AbstractTransport
 {
     private $config;
 
-    public function __construct($config = [])
+    public function __construct($config = null)
     {
         parent::__construct();
-        $this->config = $config;
+        $this->config = $config ?: array();
     }
 
-    protected function doSend(Message $message): SentMessage
+    protected function doSend(Message $message)
     {
         try {
             $mailer = new PHPMailer(true);
             
             // Configure SMTP
             $mailer->isSMTP();
-            $mailer->Host = isset($this->config['host']) ? $this->config['host'] : 'localhost';
-            $mailer->Port = isset($this->config['port']) ? $this->config['port'] : 587;
+            $mailer->Host = $this->getConfigValue('host', 'localhost');
+            $mailer->Port = $this->getConfigValue('port', 587);
             $mailer->SMTPAuth = true;
-            $mailer->Username = isset($this->config['username']) ? $this->config['username'] : '';
-            $mailer->Password = isset($this->config['password']) ? $this->config['password'] : '';
+            $mailer->Username = $this->getConfigValue('username', '');
+            $mailer->Password = $this->getConfigValue('password', '');
             
             // Set encryption
-            if (isset($this->config['encryption'])) {
-                if ($this->config['encryption'] === 'ssl') {
-                    $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                } elseif ($this->config['encryption'] === 'tls') {
-                    $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                }
+            $encryption = $this->getConfigValue('encryption', 'tls');
+            if ($encryption === 'ssl') {
+                $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } elseif ($encryption === 'tls') {
+                $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
             
             // Set timeout
-            if (isset($this->config['timeout'])) {
-                $mailer->Timeout = $this->config['timeout'];
+            $timeout = $this->getConfigValue('timeout', 30);
+            if ($timeout) {
+                $mailer->Timeout = $timeout;
             }
             
             // Set character encoding
@@ -107,5 +107,10 @@ class PhpMailerTransport extends AbstractTransport
                 previous: $e
             );
         }
+    }
+
+    private function getConfigValue($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 } 
