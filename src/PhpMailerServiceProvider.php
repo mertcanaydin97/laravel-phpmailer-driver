@@ -12,14 +12,14 @@ class PhpMailerServiceProvider extends ServiceProvider
     /**
      * Register services.
      */
-    public function register(): void
+    public function register()
     {
         // Load package translations
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'phpmailer');
         
         // Register the custom mail driver for Laravel 10
         $this->app->afterResolving('mail.manager', function ($manager) {
-            $manager->extend('phpmailer', function (array $config) {
+            $manager->extend('phpmailer', function ($config) {
                 return new PhpMailerTransport($config);
             });
         });
@@ -28,7 +28,7 @@ class PhpMailerServiceProvider extends ServiceProvider
     /**
      * Bootstrap services.
      */
-    public function boot(): void
+    public function boot()
     {
         // Publish configuration file
         if ($this->app->runningInConsole()) {
