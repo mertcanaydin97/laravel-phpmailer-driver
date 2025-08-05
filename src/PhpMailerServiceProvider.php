@@ -4,7 +4,6 @@ namespace Mertcanaydin97\LaravelPhpMailerDriver;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Config;
 use Mertcanaydin97\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
 use Mertcanaydin97\LaravelPhpMailerDriver\Console\TestPhpMailerCommand;
 
@@ -15,12 +14,15 @@ class PhpMailerServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/mail.php', 'mail'
-        );
-        
         // Load package translations
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'phpmailer');
+        
+        // Register the custom mail driver for Laravel 10
+        $this->app->afterResolving('mail.manager', function ($manager) {
+            $manager->extend('phpmailer', function (array $config) {
+                return new PhpMailerTransport($config);
+            });
+        });
     }
 
     /**
@@ -31,7 +33,7 @@ class PhpMailerServiceProvider extends ServiceProvider
         // Publish configuration file
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/mail.php' => config_path('mail.php'),
+                __DIR__.'/../config/phpmailer.php' => config_path('phpmailer.php'),
             ], 'phpmailer-config');
             
             // Publish email templates
@@ -45,10 +47,7 @@ class PhpMailerServiceProvider extends ServiceProvider
             ], 'phpmailer-lang');
         }
 
-        // Register the custom mail driver
-        Mail::extend('phpmailer', function (array $config) {
-            return new PhpMailerTransport($config);
-        });
+        // Transport registration moved to register() method for better compatibility
 
         // Register console commands
         if ($this->app->runningInConsole()) {

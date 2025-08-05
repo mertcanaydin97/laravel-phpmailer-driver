@@ -5,12 +5,15 @@
 [![License](https://img.shields.io/packagist/l/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver/blob/main/LICENSE.md)
 [![PHP Version](https://img.shields.io/packagist/php-v/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
 
+> **❗️ IMPORTANT: This package is optimized for Laravel 10+ with Symfony Mailer. If you see "Mailer [phpmailer] not defined", you MUST add the PHPMailer mailer config to your `config/mail.php` (see below) and clear your config cache!**
+
 A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMailer with Laravel's mail system. This package provides enterprise-grade email functionality with beautiful templates, multi-language support, and extensive customization options.
 
 ## ✨ Features
 
 ### 🚀 Core Features
 - **Custom PHPMailer Integration** - Seamless integration with Laravel's mail system
+- **Laravel 10+ Optimized** - Full support for Symfony Mailer with simplified transport
 - **Multiple Transport Support** - SMTP, Sendmail, and Qmail
 - **Advanced Security** - SSL/TLS encryption support
 - **Rich Email Content** - HTML and plain text email support
@@ -38,87 +41,52 @@ A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMa
 - **Detailed Documentation** - Extensive guides and examples
 - **Easy Configuration** - Simple setup and configuration
 - **Production Ready** - Battle-tested in production environments
+- **Simplified Transport** - Clean, Laravel 10+ optimized implementation
 
 ## 📋 Requirements
 
 - PHP 8.0 or higher
-- Laravel 9.0, 10.0, or 11.0
+- Laravel 10.0, 11.0, or newer
 - PHPMailer 6.8 or higher
 
-## 🚀 Installation
+## 🚀 Quick Installation for Laravel 10+
 
-### Via Composer (Recommended)
+### Step 1: Install the Package
 
 ```bash
 composer require mertcanaydin97/laravel-phpmailer-driver
 ```
 
-### Manual Installation
+### Step 2: Configure Mail Settings
 
-1. Clone this repository
-2. Run `composer install`
-3. Add the service provider to your `config/app.php`:
+**CRITICAL**: You MUST add the PHPMailer mailer to your `config/mail.php` file.
+
+1. Open your `config/mail.php` file
+2. Find the `mailers` array
+3. Add this configuration:
 
 ```php
-'providers' => [
-    // ...
-    Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider::class,
+'mailers' => [
+    // ... existing mailers ...
+    
+    // Add this PHPMailer configuration
+    'phpmailer' => [
+        'transport' => 'phpmailer',
+        'host' => env('MAIL_HOST', 'localhost'),
+        'port' => env('MAIL_PORT', 587),
+        'username' => env('MAIL_USERNAME'),
+        'password' => env('MAIL_PASSWORD'),
+        'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+        'timeout' => env('MAIL_TIMEOUT', 30),
+    ],
 ],
 ```
 
-## ⚙️ Configuration
+**See `examples/config-mail.php` for a complete example.**
 
-### 1. Publish Configuration
+### Step 3: Set Environment Variables
 
-```bash
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider"
-```
-
-### 2. Publish Email Templates (Optional)
-
-```bash
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-```
-
-This publishes beautiful, responsive email templates to `resources/views/vendor/phpmailer/emails/`.
-
-### 3. Publish Translations (Optional)
-
-```bash
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
-```
-
-This publishes translation files to `resources/lang/vendor/phpmailer/` (13 languages available).
-
-### 4. Configure Mail Settings
-
-Update the `config/phpmailer.php` file with your mail server settings:
-
-```php
-return [
-    'default' => env('MAIL_MAILER', 'phpmailer'),
-    
-    'mailers' => [
-        'phpmailer' => [
-            'transport' => 'phpmailer',
-            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
-            'timeout' => env('MAIL_TIMEOUT', 30),
-            'local_domain' => env('MAIL_EHLO_DOMAIN'),
-            'verify_peer' => env('MAIL_VERIFY_PEER', true),
-            'verify_peer_name' => env('MAIL_VERIFY_PEER_NAME', true),
-            'allow_self_signed' => env('MAIL_ALLOW_SELF_SIGNED', false),
-        ],
-    ],
-];
-```
-
-### 5. Update Environment Variables
-
-Add to your `.env` file:
+Add these to your `.env` file:
 
 ```env
 MAIL_MAILER=phpmailer
@@ -129,261 +97,241 @@ MAIL_PASSWORD=your-app-password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=your-email@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
+MAIL_TIMEOUT=30
+```
+
+### Step 4: Clear All Caches
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+composer dump-autoload
+```
+
+### Step 5: Test the Installation
+
+```bash
+php artisan phpmailer:test
 ```
 
 ## 📖 Usage
 
-### Basic Usage
+### Basic Email Sending
 
 ```php
 use Illuminate\Support\Facades\Mail;
 
-Mail::to('recipient@example.com')
-    ->send(new \App\Mail\WelcomeMail());
+// Simple text email
+Mail::mailer('phpmailer')->raw('Hello World', function ($message) {
+    $message->to('user@example.com')
+            ->subject('Test Email');
+});
+
+// HTML email
+Mail::mailer('phpmailer')->html('<h1>Hello World</h1>', function ($message) {
+    $message->to('user@example.com')
+            ->subject('Test HTML Email');
+});
+```
+
+### Using Mailable Classes
+
+```php
+use Illuminate\Mail\Mailable;
+
+class WelcomeEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('emails.welcome')
+                    ->subject('Welcome to Our App');
+    }
+}
+
+// Send using PHPMailer
+Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
 ```
 
 ### Advanced Usage
 
 ```php
-use Illuminate\Support\Facades\Mail;
-use Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerTransport;
+// Multiple recipients
+Mail::mailer('phpmailer')->raw('Hello World', function ($message) {
+    $message->to(['user1@example.com', 'user2@example.com'])
+            ->cc('cc@example.com')
+            ->bcc('bcc@example.com')
+            ->subject('Test Email');
+});
 
-// Send with custom options
-Mail::mailer('phpmailer')
-    ->to('recipient@example.com')
-    ->cc('cc@example.com')
-    ->bcc('bcc@example.com')
-    ->subject('Test Email')
-    ->html('<h1>Hello World</h1>')
-    ->text('Hello World')
-    ->send();
+// With attachments
+Mail::mailer('phpmailer')->raw('Hello World', function ($message) {
+    $message->to('user@example.com')
+            ->subject('Test Email')
+            ->attach('/path/to/file.pdf');
+});
 ```
 
-### Using Built-in Email Templates
+## 🔧 Common Issues & Solutions
 
-The package includes beautiful, responsive email templates that you can use with your mail classes:
+### ❌ Error: "Mailer [phpmailer] not defined"
 
-#### Welcome Email
-```php
-use Illuminate\Support\Facades\Mail;
-use Examples\MailClasses\WelcomeMail;
+**Solution**: You forgot to add the mailer configuration to `config/mail.php`
 
-Mail::mailer('phpmailer')
-    ->to('user@example.com')
-    ->send(new WelcomeMail('John Doe', 'https://example.com/verify', 'https://example.com/login'));
-```
+1. Make sure you added the `phpmailer` configuration to the `mailers` array
+2. Clear config cache: `php artisan config:clear`
+3. Check that `MAIL_MAILER=phpmailer` is set in your `.env`
 
-#### Password Reset Email
-```php
-use Examples\MailClasses\PasswordResetMail;
+### ❌ Error: "Illuminate transport not found"
 
-Mail::mailer('phpmailer')
-    ->to('user@example.com')
-    ->send(new PasswordResetMail('John Doe', 'https://example.com/reset', '60 minutes'));
-```
+**Solution**: This package is optimized for Laravel 10+
 
-#### Order Confirmation Email
-```php
-use Examples\MailClasses\OrderConfirmationMail;
+1. Make sure you're using Laravel 10.0 or newer
+2. Update to the latest version: `composer update mertcanaydin97/laravel-phpmailer-driver`
+3. Clear all caches
 
-$mail = new OrderConfirmationMail('John Doe', 'ORD-12345', '$99.99', [
-    ['name' => 'Product 1', 'quantity' => 2, 'price' => '$49.99'],
-    ['name' => 'Product 2', 'quantity' => 1, 'price' => '$29.99'],
-]);
+### ❌ Error: "Class not found"
 
-$mail->setShippingAddress('123 Main St, City, State 12345')
-     ->setTrackingUrl('https://example.com/track/ORD-12345')
-     ->setOrderUrl('https://example.com/orders/ORD-12345');
+**Solution**: Autoload issues
 
-Mail::mailer('phpmailer')->to('user@example.com')->send($mail);
-```
-
-#### Contact Form Email
-```php
-use Examples\MailClasses\ContactFormMail;
-
-$mail = new ContactFormMail('Admin', 'John Doe', 'john@example.com', 'Hello, I have a question...');
-$mail->setPhone('+1234567890')
-     ->setSubject('General Inquiry')
-     ->addData('company', 'Acme Corp')
-     ->setReplyUrl('mailto:john@example.com')
-     ->setAdminUrl('https://admin.example.com/contacts/123');
-
-Mail::mailer('phpmailer')->to('admin@example.com')->send($mail);
-```
-
-### Creating Custom Mail Classes
-
-```php
-<?php
-
-namespace App\Mail;
-
-use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
-
-class WelcomeMail extends Mailable
-{
-    use Queueable, SerializesModels;
-
-    public $name;
-
-    public function __construct($name = null)
-    {
-        $this->name = $name;
-    }
-
-    public function build()
-    {
-        return $this->view('emails.welcome')
-                    ->subject('Welcome to ' . config('app.name'))
-                    ->with([
-                        'name' => $this->name,
-                    ]);
-    }
-}
-```
-
-## 🌍 Multi-Language Support
-
-The package supports 13 languages out of the box:
-
-- 🇺🇸 **English** (`en`) - Default
-- 🇪🇸 **Spanish** (`es`) - Español
-- 🇫🇷 **French** (`fr`) - Français
-- 🇩🇪 **German** (`de`) - Deutsch
-- 🇮🇹 **Italian** (`it`) - Italiano
-- 🇵🇹 **Portuguese** (`pt`) - Português
-- 🇷🇺 **Russian** (`ru`) - Русский
-- 🇯🇵 **Japanese** (`ja`) - 日本語
-- 🇨🇳 **Chinese** (`zh`) - 中文
-- 🇰🇷 **Korean** (`ko`) - 한국어
-- 🇸🇦 **Arabic** (`ar`) - العربية
-- 🇮🇳 **Hindi** (`hi`) - हिन्दी
-- 🇹🇷 **Turkish** (`tr`) - Türkçe
-
-### Setting Language
-
-```php
-// Set language for current request
-App::setLocale('es');
-
-// Or in .env file
-APP_LOCALE=es
-```
-
-## 📧 Email Templates
-
-The package includes a comprehensive set of beautiful, responsive email templates:
-
-### Available Templates
-
-1. **Layout Template** (`layouts/app.blade.php`) - Main layout with header, content area, and footer
-2. **Welcome Email** (`welcome.blade.php`) - For new user registrations
-3. **Password Reset** (`password-reset.blade.php`) - For password reset requests
-4. **Notification** (`notification.blade.php`) - For general notifications
-5. **Order Confirmation** (`order-confirmation.blade.php`) - For e-commerce order confirmations
-6. **Contact Form** (`contact-form.blade.php`) - For contact form submissions
-
-### Template Features
-
-- **Responsive Design** - Works perfectly on desktop, tablet, and mobile
-- **Modern Styling** - Beautiful gradients and clean typography
-- **Email Client Compatibility** - Tested across major email clients
-- **Fully Customizable** - Publish and override templates as needed
-- **Accessible** - Proper contrast ratios and semantic HTML
-
-### Customization
-
-Templates are published to `resources/views/vendor/phpmailer/emails/` and can be fully customized:
-
-```bash
-# Publish templates
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-
-# Edit templates at: resources/views/vendor/phpmailer/emails/
-```
+1. Run `composer dump-autoload`
+2. Clear all caches: `php artisan config:clear && php artisan cache:clear`
 
 ## 🧪 Testing
-
-### Run Tests
-
-```bash
-composer test
-```
 
 ### Test Email Sending
 
 ```bash
 # Test with default settings
-php artisan phpmailer:test user@example.com
+php artisan phpmailer:test
 
-# Test with custom subject and message
-php artisan phpmailer:test user@example.com --subject="Custom Subject" --message="Custom message"
+# Test with custom email
+php artisan phpmailer:test --to=your@email.com
 ```
 
-## 📚 Documentation
+### Test in Code
 
-- **[Email Templates Guide](EMAIL_TEMPLATES.md)** - Detailed template documentation
-- **[Translation Guide](TRANSLATIONS.md)** - Multi-language support documentation
-- **[Installation Guide](INSTALLATION.md)** - Step-by-step installation instructions
+```php
+use Illuminate\Support\Facades\Mail;
 
-## 🤝 Contributing
+// Simple test
+Mail::mailer('phpmailer')
+    ->to('test@example.com')
+    ->raw('Test email from Laravel PHPMailer Driver', function ($message) {
+        $message->subject('Test Email');
+    });
+```
 
-We welcome contributions! Please see our contributing guidelines:
+## 📧 Email Templates
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
+### Publishing Templates
 
 ```bash
-# Clone the repository
-git clone https://github.com/mertcanaydin97/laravel-phpmailer-driver.git
-
-# Install dependencies
-composer install
-
-# Run tests
-composer test
+php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
 ```
+
+### Available Templates
+
+- **Welcome Email** - `resources/views/vendor/phpmailer/emails/welcome.blade.php`
+- **Password Reset** - `resources/views/vendor/phpmailer/emails/password-reset.blade.php`
+- **Notification** - `resources/views/vendor/phpmailer/emails/notification.blade.php`
+- **Order Confirmation** - `resources/views/vendor/phpmailer/emails/order-confirmation.blade.php`
+- **Contact Form** - `resources/views/vendor/phpmailer/emails/contact-form.blade.php`
+- **Newsletter** - `resources/views/vendor/phpmailer/emails/newsletter.blade.php`
+
+### Using Templates
+
+```php
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'vendor.phpmailer.emails.welcome',
+    'data' => [
+        'name' => 'John Doe',
+        'company' => 'Your Company'
+    ]
+]));
+```
+
+## 🌍 Internationalization
+
+### Publishing Translations
+
+```bash
+php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
+```
+
+### Supported Languages
+
+- English (en)
+- Spanish (es)
+- French (fr)
+- German (de)
+- Italian (it)
+- Portuguese (pt)
+- Russian (ru)
+- Japanese (ja)
+- Chinese (zh)
+- Korean (ko)
+- Arabic (ar)
+- Hindi (hi)
+- Turkish (tr)
+
+### Using Translations
+
+```php
+// Set locale
+app()->setLocale('es');
+
+// Send email with Spanish translations
+Mail::mailer('phpmailer')->send(new WelcomeEmail());
+```
+
+## 🎯 Troubleshooting Checklist
+
+If you're still having issues, follow this checklist:
+
+1. ✅ **Package installed**: `composer require mertcanaydin97/laravel-phpmailer-driver`
+2. ✅ **Mailer config added**: Added `phpmailer` to `config/mail.php` mailers array
+3. ✅ **Environment variables set**: `MAIL_MAILER=phpmailer` and SMTP settings in `.env`
+4. ✅ **Caches cleared**: `php artisan config:clear && php artisan cache:clear`
+5. ✅ **Autoload refreshed**: `composer dump-autoload`
+6. ✅ **Test command works**: `php artisan phpmailer:test`
+
+## 📞 Need Help?
+
+If you're still experiencing issues:
+
+1. Check Laravel logs: `storage/logs/laravel.log`
+2. Enable debug mode: `APP_DEBUG=true` in `.env`
+3. Verify your SMTP settings
+4. Test with a different email provider (Gmail, Outlook, etc.)
 
 ## 📄 License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+This package is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-## 🆘 Support
+## 🤝 Contributing
 
-### Getting Help
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-- 📖 **Documentation** - Check the documentation files in this repository
-- 🐛 **Issues** - Report bugs and request features on [GitHub Issues](https://github.com/mertcanaydin97/laravel-phpmailer-driver/issues)
-- 💬 **Discussions** - Join discussions on [GitHub Discussions](https://github.com/mertcanaydin97/laravel-phpmailer-driver/discussions)
+## 📊 Version History
 
-### Common Issues
-
-- **SMTP Connection Failed** - Check your mail server settings and credentials
-- **Templates Not Found** - Ensure you've published the templates using the artisan command
-- **Translations Not Working** - Verify the language files are published and the locale is set correctly
-
-## 🙏 Acknowledgments
-
-- [PHPMailer](https://github.com/PHPMailer/PHPMailer) - The underlying email library
-- [Laravel](https://laravel.com/) - The amazing PHP framework
-- All contributors and users of this package
-
-## 📊 Statistics
-
-- **Downloads**: [![Total Downloads](https://img.shields.io/packagist/dt/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
-- **Stars**: [![GitHub stars](https://img.shields.io/github/stars/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver)
-- **Forks**: [![GitHub forks](https://img.shields.io/github/forks/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver)
+- **v1.8.8** - Laravel 10+ Configuration Consistency
+- **v1.8.7** - Laravel 10+ Configuration Fixed
+- **v1.8.6** - Laravel 10+ Simplified Transport
+- **v1.8.5** - Removed Conflicting Transport Files
+- **v1.8.4** - Simplified Transport Registration
+- **v1.8.3** - Fixed Service Provider Imports
+- **v1.8.2** - Added Test Transport for Debugging
+- **v1.8.1** - Fixed Service Provider Registration
+- **v1.8.0** - Laravel 9+ Compatibility
+- **v1.7.x** - Various fixes and improvements
+- **v1.6.0** - Added Comprehensive Test Suite
+- **v1.5.0** - Simplified Laravel Transport Approach
+- **v1.4.0** - Symfony Mailer Approach
+- **v1.3.0** - Added Troubleshooting Guide
+- **v1.2.0** - Fixed PHPMailer Driver Registration
+- **v1.1.0** - Fixed Mail Configuration
+- **v1.0.0** - Initial Release
 
 ---
 
-**Made with ❤️ by [Mertcan Aydın](https://github.com/mertcanaydin97)**
-
-If this package helps you, please consider giving it a ⭐️ on GitHub! 
+**Made with ❤️ by [Mertcan Aydın](https://github.com/mertcanaydin97)** 

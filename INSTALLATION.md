@@ -1,68 +1,43 @@
-# Installation Guide
+# Laravel PHPMailer Driver - Installation Guide
 
-This guide will help you install and configure the Laravel PHPMailer Driver package.
+## 🚀 Quick Installation for Laravel 10+
 
-## Prerequisites
-
-- PHP 8.0 or higher
-- Laravel 9.0, 10.0, or 11.0
-- Composer
-
-## Step 1: Install the Package
-
-### Option A: Via Composer (Recommended)
+### Step 1: Install the Package
 
 ```bash
-composer require og/laravel-phpmailer-driver
+composer require mertcanaydin97/laravel-phpmailer-driver
 ```
 
-### Option B: Manual Installation
+### Step 2: Configure Mail Settings
 
-1. Clone or download this repository
-2. Add the package to your `composer.json`:
+**CRITICAL**: You MUST add the PHPMailer mailer to your `config/mail.php` file.
 
-```json
-{
-    "require": {
-        "og/laravel-phpmailer-driver": "dev-master"
-    },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "/path/to/your/package"
-        }
-    ]
-}
+1. Open your `config/mail.php` file
+2. Find the `mailers` array
+3. Add this configuration:
+
+```php
+'mailers' => [
+    // ... existing mailers ...
+    
+    // Add this PHPMailer configuration
+    'phpmailer' => [
+        'transport' => 'phpmailer',
+        'host' => env('MAIL_HOST', 'localhost'),
+        'port' => env('MAIL_PORT', 587),
+        'username' => env('MAIL_USERNAME'),
+        'password' => env('MAIL_PASSWORD'),
+        'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+        'timeout' => env('MAIL_TIMEOUT', 30),
+    ],
+],
 ```
 
-3. Run `composer install`
+**See `examples/config-mail.php` for a complete example.**
 
-## Step 2: Publish Configuration and Templates
+### Step 3: Set Environment Variables
 
-Publish the configuration file and email templates to your Laravel application:
-
-```bash
-# Publish configuration only
-
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider"
-
-# Publish email templates (optional)
-php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider"
-
-# Publish email templates (optional)
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-
-```
-
-This will create:
-- `config/phpmailer.php` - Configuration file
-- `resources/views/vendor/phpmailer/emails/` - Email templates (if you publish templates)
-
-## Step 3: Configure Environment Variables
-
-Add the following variables to your `.env` file:
+Add these to your `.env` file:
 
 ```env
 MAIL_MAILER=phpmailer
@@ -73,152 +48,147 @@ MAIL_PASSWORD=your-app-password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=your-email@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
+MAIL_TIMEOUT=30
 ```
 
-### Gmail Configuration Example
+### Step 4: Clear All Caches
 
-For Gmail, you'll need to:
-1. Enable 2-factor authentication
-2. Generate an App Password
-3. Use the App Password instead of your regular password
+```bash
+php artisan config:clear
+php artisan cache:clear
+composer dump-autoload
+```
+
+### Step 5: Test the Installation
+
+```bash
+php artisan phpmailer:test
+```
+
+## 🔧 Common Issues & Solutions
+
+### ❌ Error: "Mailer [phpmailer] not defined"
+
+**Solution**: You forgot to add the mailer configuration to `config/mail.php`
+
+1. Make sure you added the `phpmailer` configuration to the `mailers` array
+2. Clear config cache: `php artisan config:clear`
+3. Check that `MAIL_MAILER=phpmailer` is set in your `.env`
+
+### ❌ Error: "Illuminate transport not found"
+
+**Solution**: This package is optimized for Laravel 10+
+
+1. Make sure you're using Laravel 10.0 or newer
+2. Update to the latest version: `composer update mertcanaydin97/laravel-phpmailer-driver`
+3. Clear all caches
+
+### ❌ Error: "Class not found"
+
+**Solution**: Autoload issues
+
+1. Run `composer dump-autoload`
+2. Clear all caches: `php artisan config:clear && php artisan cache:clear`
+
+## 📋 Complete Configuration Example
+
+### config/mail.php
+
+```php
+<?php
+
+return [
+    'default' => env('MAIL_MAILER', 'phpmailer'),
+
+    'mailers' => [
+        'smtp' => [
+            'transport' => 'smtp',
+            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
+            'port' => env('MAIL_PORT', 587),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        // Add this PHPMailer configuration
+        'phpmailer' => [
+            'transport' => 'phpmailer',
+            'host' => env('MAIL_HOST', 'localhost'),
+            'port' => env('MAIL_PORT', 587),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'timeout' => env('MAIL_TIMEOUT', 30),
+        ],
+    ],
+
+    'from' => [
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
+    ],
+];
+```
+
+### .env
 
 ```env
+MAIL_MAILER=phpmailer
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-16-digit-app-password
+MAIL_PASSWORD=your-app-password
 MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-email@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+MAIL_TIMEOUT=30
 ```
 
-### Other SMTP Providers
+## 🧪 Testing
 
-#### Outlook/Hotmail
-```env
-MAIL_HOST=smtp-mail.outlook.com
-MAIL_PORT=587
-MAIL_ENCRYPTION=tls
-```
-
-#### Yahoo
-```env
-MAIL_HOST=smtp.mail.yahoo.com
-MAIL_PORT=587
-MAIL_ENCRYPTION=tls
-```
-
-#### Custom SMTP Server
-```env
-MAIL_HOST=your-smtp-server.com
-MAIL_PORT=587
-MAIL_USERNAME=your-username
-MAIL_PASSWORD=your-password
-MAIL_ENCRYPTION=tls
-```
-
-## Step 4: Test the Installation
-
-Use the provided Artisan command to test your configuration:
+### Test Email Sending
 
 ```bash
-php artisan phpmailer:test your-email@example.com
+# Test with default settings
+php artisan phpmailer:test
+
+# Test with custom email
+php artisan phpmailer:test user@example.com --subject="Test Email" --message="Hello World"
 ```
 
-Or with custom options:
-
-```bash
-php artisan phpmailer:test your-email@example.com --subject="Custom Subject" --message="Custom message"
-```
-
-## Step 5: Usage in Your Application
-
-### Basic Usage
+### Test in Code
 
 ```php
 use Illuminate\Support\Facades\Mail;
 
-Mail::to('recipient@example.com')
-    ->send(new \App\Mail\WelcomeMail());
-```
-
-### Using PHPMailer Driver Explicitly
-
-```php
+// Simple test
 Mail::mailer('phpmailer')
-    ->to('recipient@example.com')
-    ->subject('Test Email')
-    ->html('<h1>Hello World</h1>')
-    ->send();
+    ->to('test@example.com')
+    ->raw('Test email from Laravel PHPMailer Driver', function ($message) {
+        $message->subject('Test Email');
+    });
 ```
 
-## Step 6: Using Email Templates
+## 🎯 Troubleshooting Checklist
 
-The package includes beautiful, responsive email templates that you can use:
+If you're still having issues, follow this checklist:
 
-### Publishing Templates
-```bash
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-```
+1. ✅ **Package installed**: `composer require mertcanaydin97/laravel-phpmailer-driver`
+2. ✅ **Mailer config added**: Added `phpmailer` to `config/mail.php` mailers array
+3. ✅ **Environment variables set**: `MAIL_MAILER=phpmailer` and SMTP settings in `.env`
+4. ✅ **Caches cleared**: `php artisan config:clear && php artisan cache:clear`
+5. ✅ **Autoload refreshed**: `composer dump-autoload`
+6. ✅ **Test command works**: `php artisan phpmailer:test`
 
-### Using Templates
-```php
-// Welcome email
-use Examples\MailClasses\WelcomeMail;
+## 📞 Need Help?
 
-Mail::mailer('phpmailer')
-    ->to('user@example.com')
-    ->send(new WelcomeMail('John Doe', 'https://example.com/verify'));
+If you're still experiencing issues:
 
-// Password reset email
-use Examples\MailClasses\PasswordResetMail;
+1. Check Laravel logs: `storage/logs/laravel.log`
+2. Enable debug mode: `APP_DEBUG=true` in `.env`
+3. Verify your SMTP settings
+4. Test with a different email provider (Gmail, Outlook, etc.)
 
-Mail::mailer('phpmailer')
-    ->to('user@example.com')
-    ->send(new PasswordResetMail('John Doe', 'https://example.com/reset'));
-```
+---
 
-### Available Templates
-- Welcome Email
-- Password Reset
-- Order Confirmation
-- Contact Form
-- General Notifications
-
-All templates are responsive and compatible with major email clients.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Authentication Failed**
-   - Check your username and password
-   - For Gmail, make sure you're using an App Password
-   - Verify that 2-factor authentication is enabled (for Gmail)
-
-2. **Connection Timeout**
-   - Check your firewall settings
-   - Verify the SMTP host and port
-   - Try different encryption settings (tls/ssl)
-
-3. **SSL Certificate Issues**
-   - Add these to your `.env` file:
-   ```env
-   MAIL_VERIFY_PEER=false
-   MAIL_VERIFY_PEER_NAME=false
-   MAIL_ALLOW_SELF_SIGNED=true
-   ```
-
-### Debug Mode
-
-To enable debug mode, modify the `PhpMailerTransport.php` file:
-
-```php
-// Change this line in configureMailer() method
-$this->mailer->SMTPDebug = 2; // 0 = off, 1 = client messages, 2 = client and server messages
-```
-
-## Support
-
-If you encounter any issues, please:
-1. Check the troubleshooting section above
-2. Review your SMTP server documentation
-3. Open an issue on GitHub with detailed error messages 
+**Made with ❤️ by [Mertcan Aydın](https://github.com/mertcanaydin97)** 

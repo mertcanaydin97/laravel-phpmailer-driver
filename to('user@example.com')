@@ -1,0 +1,1 @@
+6. Use: Mail::mailer('phpmailer')-, function($m) { $m-; });

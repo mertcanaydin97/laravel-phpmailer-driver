@@ -3,11 +3,12 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Default Mail Driver
+    | Default Mailer
     |--------------------------------------------------------------------------
     |
-    | This option controls the default mail driver that will be used to send
-    | emails. You can set this to 'phpmailer' to use the PHPMailer driver.
+    | This option controls the default mailer that is used to send any email
+    | messages sent by your application. Alternative mailers may be setup
+    | and used as needed; however, this mailer will be used by default.
     |
     */
 
@@ -15,38 +16,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Mail Driver Configurations
+    | Mailer Configurations
     |--------------------------------------------------------------------------
     |
-    | Here you may configure all of the mail drivers used by your application
-    | plus their respective settings. Several examples have been configured
-    | for you and you are free to add your own as your application requires.
+    | Here you may configure all of the mailers used by your application plus
+    | their respective settings. Several examples have been configured for
+    | you and you are free to add your own as your application requires.
     |
     | Laravel supports a variety of mail "transport" drivers to be used while
     | sending an e-mail. You will specify which one you are using for your
-    | mail drivers below. You are free to add additional mail drivers as
-    | required.
+    | mailers below. You are free to add additional mailers as required.
     |
-    | Supported: "smtp", "sendmail", "mailgun", "ses", "postmark", "log", "array"
-    |            "phpmailer"
+    | Supported: "smtp", "sendmail", "mailgun", "ses",
+    |            "postmark", "log", "array", "failover"
     |
     */
 
     'mailers' => [
-        'phpmailer' => [
-            'transport' => 'phpmailer',
-            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
-            'timeout' => env('MAIL_TIMEOUT', 30),
-            'local_domain' => env('MAIL_EHLO_DOMAIN'),
-            'verify_peer' => env('MAIL_VERIFY_PEER', true),
-            'verify_peer_name' => env('MAIL_VERIFY_PEER_NAME', true),
-            'allow_self_signed' => env('MAIL_ALLOW_SELF_SIGNED', false),
-        ],
-
         'smtp' => [
             'transport' => 'smtp',
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
@@ -55,7 +41,6 @@ return [
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN'),
         ],
 
         'ses' => [
@@ -64,6 +49,9 @@ return [
 
         'mailgun' => [
             'transport' => 'mailgun',
+            // 'client' => [
+            //     'timeout' => 5,
+            // ],
         ],
 
         'postmark' => [
@@ -91,6 +79,20 @@ return [
                 'log',
             ],
         ],
+
+        // ========================================
+        // PHPMailer Driver Configuration
+        // ========================================
+        // IMPORTANT: Add this configuration to your config/mail.php
+        'phpmailer' => [
+            'transport' => 'phpmailer',
+            'host' => env('MAIL_HOST', 'localhost'),
+            'port' => env('MAIL_PORT', 587),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'timeout' => env('MAIL_TIMEOUT', 30),
+        ],
     ],
 
     /*
@@ -114,8 +116,8 @@ return [
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |
-    | If you are using Markdown based email rendering, you may configure your
-    | theme and component paths here, allowing you to customize the design
+    | If you are sending Markdown based email notifications, you may configure
+    | the theme and component paths here, allowing you to customize the design
     | of the emails. Or, you may simply stick with the Laravel defaults!
     |
     */
