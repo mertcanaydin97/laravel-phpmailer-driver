@@ -16,7 +16,7 @@ class PhpMailerServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/phpmailer.php', 'phpmailer'
+            __DIR__.'/../config/mail.php', 'mail'
         );
         
         // Load package translations
@@ -31,7 +31,7 @@ class PhpMailerServiceProvider extends ServiceProvider
         // Publish configuration file
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/phpmailer.php' => config_path('phpmailer.php'),
+                __DIR__.'/../config/mail.php' => config_path('mail.php'),
             ], 'phpmailer-config');
             
             // Publish email templates
