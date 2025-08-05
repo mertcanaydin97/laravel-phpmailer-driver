@@ -57,11 +57,11 @@ resources/lang/
 ### Step 1: Publish Language Files
 
 ```bash
-<<<<<<< HEAD
+
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
-=======
+
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
+
 ```
 
 ### Step 2: Translation Files Location
@@ -330,11 +330,11 @@ cp -r resources/lang/vendor/phpmailer/ my-custom-translations/
 
 2. **Republish translations**:
 ```bash
-<<<<<<< HEAD
+
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang --force
-=======
+
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang --force
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
+
 ```
 
 3. **Reapply your customizations** from the backup

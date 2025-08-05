@@ -1,16 +1,9 @@
 # Laravel PHPMailer Driver
 
-<<<<<<< HEAD
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
 [![Total Downloads](https://img.shields.io/packagist/dt/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
 [![License](https://img.shields.io/packagist/l/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver/blob/main/LICENSE.md)
 [![PHP Version](https://img.shields.io/packagist/php-v/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
-=======
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
-[![Total Downloads](https://img.shields.io/packagist/dt/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
-[![License](https://img.shields.io/packagist/l/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver/blob/main/LICENSE.md)
-[![PHP Version](https://img.shields.io/packagist/php-v/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMailer with Laravel's mail system. This package provides enterprise-grade email functionality with beautiful templates, multi-language support, and extensive customization options.
 
@@ -57,11 +50,7 @@ A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMa
 ### Via Composer (Recommended)
 
 ```bash
-<<<<<<< HEAD
 composer require mertcanaydin97/laravel-phpmailer-driver
-=======
-composer require mertcanaydin97/laravel-phpmailer-driver
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 ```
 
 ### Manual Installation
@@ -73,11 +62,7 @@ composer require mertcanaydin97/laravel-phpmailer-driver
 ```php
 'providers' => [
     // ...
-<<<<<<< HEAD
     Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider::class,
-=======
-    OG\LaravelPhpMailerDriver\PhpMailerServiceProvider::class,
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 ],
 ```
 
@@ -86,21 +71,13 @@ composer require mertcanaydin97/laravel-phpmailer-driver
 ### 1. Publish Configuration
 
 ```bash
-<<<<<<< HEAD
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider"
-=======
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider"
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 ```
 
 ### 2. Publish Email Templates (Optional)
 
 ```bash
-<<<<<<< HEAD
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-=======
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 ```
 
 This publishes beautiful, responsive email templates to `resources/views/vendor/phpmailer/emails/`.
@@ -108,11 +85,7 @@ This publishes beautiful, responsive email templates to `resources/views/vendor/
 ### 3. Publish Translations (Optional)
 
 ```bash
-<<<<<<< HEAD
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
-=======
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-lang
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 ```
 
 This publishes translation files to `resources/lang/vendor/phpmailer/` (13 languages available).
@@ -173,11 +146,7 @@ Mail::to('recipient@example.com')
 
 ```php
 use Illuminate\Support\Facades\Mail;
-<<<<<<< HEAD
 use Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerTransport;
-=======
-use OG\LaravelPhpMailerDriver\PhpMailerTransport;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 // Send with custom options
 Mail::mailer('phpmailer')
@@ -331,7 +300,7 @@ Templates are published to `resources/views/vendor/phpmailer/emails/` and can be
 
 ```bash
 # Publish templates
-php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
+php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
 
 # Edit templates at: resources/views/vendor/phpmailer/emails/
 ```
@@ -359,7 +328,6 @@ php artisan phpmailer:test user@example.com --subject="Custom Subject" --message
 - **[Email Templates Guide](EMAIL_TEMPLATES.md)** - Detailed template documentation
 - **[Translation Guide](TRANSLATIONS.md)** - Multi-language support documentation
 - **[Installation Guide](INSTALLATION.md)** - Step-by-step installation instructions
-- **[Package Summary](PACKAGE_SUMMARY.md)** - High-level package overview
 
 ## 🤝 Contributing
 
@@ -410,20 +378,12 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 ## 📊 Statistics
 
-<<<<<<< HEAD
 - **Downloads**: [![Total Downloads](https://img.shields.io/packagist/dt/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
-=======
-- **Downloads**: [![Total Downloads](https://img.shields.io/packagist/dt/mertcanaydin97/laravel-phpmailer-driver.svg)](https://packagist.org/packages/mertcanaydin97/laravel-phpmailer-driver)
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 - **Stars**: [![GitHub stars](https://img.shields.io/github/stars/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver)
 - **Forks**: [![GitHub forks](https://img.shields.io/github/forks/mertcanaydin97/laravel-phpmailer-driver.svg)](https://github.com/mertcanaydin97/laravel-phpmailer-driver)
 
 ---
 
-<<<<<<< HEAD
 **Made with ❤️ by [Mertcan Aydın](https://github.com/mertcanaydin97)**
-=======
-**Made with ❤️ by [Mert Can Aydin](https://github.com/mertcanaydin97)**
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 If this package helps you, please consider giving it a ⭐️ on GitHub! 

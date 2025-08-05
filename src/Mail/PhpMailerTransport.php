@@ -1,10 +1,6 @@
 <?php
 
-<<<<<<< HEAD
 namespace Mertcanaydin97\LaravelPhpMailerDriver\Mail;
-=======
-namespace OG\LaravelPhpMailerDriver\Mail;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 use Illuminate\Mail\Transport\Transport;
 use Illuminate\Support\Collection;
@@ -98,8 +94,6 @@ class PhpMailerTransport extends Transport
             // Reset the mailer
             $this->mailer->clearAddresses();
             $this->mailer->clearAttachments();
-            $this->mailer->clearCustomHeaders();
-            $this->mailer->clearReplyTos();
 
             // Set from address
             $from = $message->getFrom();
@@ -107,14 +101,6 @@ class PhpMailerTransport extends Transport
                 $fromAddress = array_keys($from)[0];
                 $fromName = $from[$fromAddress];
                 $this->mailer->setFrom($fromAddress, $fromName);
-            }
-
-            // Set reply-to
-            $replyTo = $message->getReplyTo();
-            if (!empty($replyTo)) {
-                $replyToAddress = array_keys($replyTo)[0];
-                $replyToName = $replyTo[$replyToAddress];
-                $this->mailer->addReplyTo($replyToAddress, $replyToName);
             }
 
             // Set recipients
@@ -145,14 +131,29 @@ class PhpMailerTransport extends Transport
             $this->mailer->Subject = $message->getSubject();
 
             // Set body
-            $body = $message->getBody();
-            if ($message->getContentType() === 'text/html') {
+            $htmlBody = $this->getHtmlBody($message);
+            $textBody = $this->getTextBody($message);
+
+            if (!empty($htmlBody)) {
                 $this->mailer->isHTML(true);
-                $this->mailer->Body = $body;
-                $this->mailer->AltBody = $this->getTextBody($message);
+                $this->mailer->Body = $htmlBody;
+                $this->mailer->AltBody = $textBody;
             } else {
                 $this->mailer->isHTML(false);
-                $this->mailer->Body = $body;
+                $this->mailer->Body = $textBody;
+            }
+
+            // Set custom headers
+            $headers = $message->getHeaders();
+            foreach ($headers->getAll() as $header) {
+                if ($header->getFieldName() !== 'From' && 
+                    $header->getFieldName() !== 'To' && 
+                    $header->getFieldName() !== 'Subject' && 
+                    $header->getFieldName() !== 'Cc' && 
+                    $header->getFieldName() !== 'Bcc' && 
+                    $header->getFieldName() !== 'Content-Type') {
+                    $this->mailer->addCustomHeader($header->getFieldName(), $header->getFieldBody());
+                }
             }
 
             // Add attachments
@@ -167,16 +168,6 @@ class PhpMailerTransport extends Transport
                 }
             }
 
-            // Add custom headers
-            $headers = $message->getHeaders();
-            foreach ($headers->getAll() as $header) {
-                if ($header->getFieldName() !== 'Content-Type' && 
-                    $header->getFieldName() !== 'Content-Transfer-Encoding' &&
-                    $header->getFieldName() !== 'MIME-Version') {
-                    $this->mailer->addCustomHeader($header->getFieldName(), $header->getFieldBody());
-                }
-            }
-
             // Send the email
             $this->mailer->send();
 
@@ -185,29 +176,47 @@ class PhpMailerTransport extends Transport
             return $this->numberOfRecipients($message);
 
         } catch (Exception $e) {
-            throw new \Swift_TransportException(
-                'PHPMailer Exception: ' . $e->getMessage(),
-                $e->getCode(),
-                $e
-            );
+            $this->sendPerformed($message);
+            throw new \Exception('Failed to send email: ' . $e->getMessage());
         }
     }
 
     /**
-     * Get the text body from the message.
+     * Get the HTML body of the message.
      */
-    protected function getTextBody(Swift_Mime_SimpleMessage $message): string
+    protected function getHtmlBody(Swift_Mime_SimpleMessage $message): string
     {
-        $text = '';
+        $htmlBody = '';
 
         foreach ($message->getChildren() as $child) {
-            if ($child instanceof \Swift_MimePart && $child->getContentType() === 'text/plain') {
-                $text = $child->getBody();
+            if ($child->getContentType() === 'text/html') {
+                $htmlBody = $child->getBody();
                 break;
             }
         }
 
-        return $text;
+        if (empty($htmlBody)) {
+            $htmlBody = $message->getBody();
+        }
+
+        return $htmlBody;
+    }
+
+    /**
+     * Get the text body of the message.
+     */
+    protected function getTextBody(Swift_Mime_SimpleMessage $message): string
+    {
+        $textBody = '';
+
+        foreach ($message->getChildren() as $child) {
+            if ($child->getContentType() === 'text/plain') {
+                $textBody = $child->getBody();
+                break;
+            }
+        }
+
+        return $textBody;
     }
 
     /**

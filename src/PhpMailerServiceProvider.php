@@ -1,21 +1,12 @@
 <?php
 
-<<<<<<< HEAD
 namespace Mertcanaydin97\LaravelPhpMailerDriver;
-=======
-namespace OG\LaravelPhpMailerDriver;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
-<<<<<<< HEAD
 use Mertcanaydin97\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
 use Mertcanaydin97\LaravelPhpMailerDriver\Console\TestPhpMailerCommand;
-=======
-use OG\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
-use OG\LaravelPhpMailerDriver\Console\TestPhpMailerCommand;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 class PhpMailerServiceProvider extends ServiceProvider
 {

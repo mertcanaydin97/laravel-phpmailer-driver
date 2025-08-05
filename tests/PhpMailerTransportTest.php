@@ -1,18 +1,10 @@
 <?php
 
-<<<<<<< HEAD
 namespace Mertcanaydin97\LaravelPhpMailerDriver\Tests;
 
 use Orchestra\Testbench\TestCase;
 use Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider;
 use Mertcanaydin97\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
-=======
-namespace OG\LaravelPhpMailerDriver\Tests;
-
-use Orchestra\Testbench\TestCase;
-use OG\LaravelPhpMailerDriver\PhpMailerServiceProvider;
-use OG\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 use Illuminate\Support\Facades\Mail;
 use Swift_Message;
 
@@ -115,14 +107,48 @@ class PhpMailerTransportTest extends TestCase
     public function it_can_handle_ssl_verification_settings()
     {
         $config = [
-            'host' => 'smtp.test.com',
+            'host' => 'smtp.gmail.com',
             'port' => 587,
             'encryption' => 'tls',
-            'username' => 'test@test.com',
+            'username' => 'test@gmail.com',
             'password' => 'password',
             'verify_peer' => false,
             'verify_peer_name' => false,
             'allow_self_signed' => true,
+        ];
+
+        $transport = new PhpMailerTransport($config);
+        
+        $this->assertInstanceOf(PhpMailerTransport::class, $transport);
+    }
+
+    /** @test */
+    public function it_can_handle_timeout_settings()
+    {
+        $config = [
+            'host' => 'smtp.gmail.com',
+            'port' => 587,
+            'encryption' => 'tls',
+            'username' => 'test@gmail.com',
+            'password' => 'password',
+            'timeout' => 120,
+        ];
+
+        $transport = new PhpMailerTransport($config);
+        
+        $this->assertInstanceOf(PhpMailerTransport::class, $transport);
+    }
+
+    /** @test */
+    public function it_can_handle_local_domain_settings()
+    {
+        $config = [
+            'host' => 'smtp.gmail.com',
+            'port' => 587,
+            'encryption' => 'tls',
+            'username' => 'test@gmail.com',
+            'password' => 'password',
+            'local_domain' => 'example.com',
         ];
 
         $transport = new PhpMailerTransport($config);

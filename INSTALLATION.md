@@ -43,17 +43,17 @@ Publish the configuration file and email templates to your Laravel application:
 
 ```bash
 # Publish configuration only
-<<<<<<< HEAD
+
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider"
 
 # Publish email templates (optional)
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-=======
+
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider"
 
 # Publish email templates (optional)
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
+
 ```
 
 This will create:

@@ -1,10 +1,6 @@
 <?php
 
-<<<<<<< HEAD
 namespace Mertcanaydin97\LaravelPhpMailerDriver\Console;
-=======
-namespace OG\LaravelPhpMailerDriver\Console;
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;

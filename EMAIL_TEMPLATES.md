@@ -40,11 +40,11 @@ The package includes 6 professionally designed email templates:
 
 ### Step 1: Publish Templates
 ```bash
-<<<<<<< HEAD
+
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
-=======
+
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
+
 ```
 
 ### Step 2: Templates Location
@@ -253,11 +253,11 @@ cp -r resources/views/vendor/phpmailer/emails/ my-custom-templates/
 
 2. **Republish templates**:
 ```bash
-<<<<<<< HEAD
+
 php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates --force
-=======
+
 php artisan vendor:publish --provider="OG\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates --force
->>>>>>> 4aa52fa (Initial release: Laravel PHPMailer Driver with 13 languages and 6 email templates)
+
 ```
 
 3. **Reapply your customizations** from the backup
