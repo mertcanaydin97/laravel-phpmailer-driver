@@ -10,9 +10,9 @@ use PHPMailer\PHPMailer\Exception;
 
 class PhpMailerTransport extends AbstractTransport
 {
-    protected array $config;
+    protected $config;
 
-    public function __construct(array $config)
+    public function __construct($config)
     {
         parent::__construct();
         $this->config = $config;
