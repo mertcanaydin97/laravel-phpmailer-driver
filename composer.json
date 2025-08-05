@@ -1,7 +1,7 @@
 {
     "name": "mertcanaydin97/laravel-phpmailer-driver",
     "description": "A custom Laravel mail driver using PHPMailer",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "library",
     "license": "MIT",
     "authors": [

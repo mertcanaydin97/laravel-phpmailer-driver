@@ -10,9 +10,9 @@ use PHPMailer\PHPMailer\Exception;
 
 class PhpMailerTransport extends AbstractTransport
 {
-    protected $config;
+    private $config;
 
-    public function __construct($config)
+    public function __construct($config = [])
     {
         parent::__construct();
         $this->config = $config;
@@ -25,11 +25,11 @@ class PhpMailerTransport extends AbstractTransport
             
             // Configure SMTP
             $mailer->isSMTP();
-            $mailer->Host = $this->config['host'] ?? 'localhost';
-            $mailer->Port = $this->config['port'] ?? 587;
+            $mailer->Host = isset($this->config['host']) ? $this->config['host'] : 'localhost';
+            $mailer->Port = isset($this->config['port']) ? $this->config['port'] : 587;
             $mailer->SMTPAuth = true;
-            $mailer->Username = $this->config['username'] ?? '';
-            $mailer->Password = $this->config['password'] ?? '';
+            $mailer->Username = isset($this->config['username']) ? $this->config['username'] : '';
+            $mailer->Password = isset($this->config['password']) ? $this->config['password'] : '';
             
             // Set encryption
             if (isset($this->config['encryption'])) {
