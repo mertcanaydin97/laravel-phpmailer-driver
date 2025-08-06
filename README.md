@@ -259,6 +259,72 @@ Mail::mailer('phpmailer')->raw('Hello', function ($message) {
 1. Run `composer dump-autoload`
 2. Clear all caches: `php artisan config:clear && php artisan cache:clear`
 
+### ❌ Error: "Class Illuminate\Mail\Transport\Transport not found"
+
+**Solution**: You're using an incorrect approach. Use one of these correct methods:
+
+```php
+// ❌ WRONG - This causes the Transport error
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'emails.welcome',
+    'data' => ['name' => 'John Doe']
+]));
+
+// ✅ CORRECT - Using Mailable class (Recommended)
+class WelcomeEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('emails.welcome')
+                    ->subject('Welcome')
+                    ->with([
+                        'name' => 'John Doe',
+                        'company' => 'Your Company'
+                    ]);
+    }
+}
+
+Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
+
+// ✅ CORRECT - Using HTML with template rendering
+$html = view('emails.welcome', [
+    'name' => 'John Doe',
+    'company' => 'Your Company'
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
+
+// ✅ CORRECT - Simple raw email
+Mail::mailer('phpmailer')->raw('Hello John Doe!', function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
+```
+
+**Alternative Solutions**:
+
+1. **Use raw email sending**:
+```php
+Mail::mailer('phpmailer')->raw('Hello World', function ($message) {
+    $message->to('user@example.com')->subject('Test Email');
+});
+```
+
+2. **Use HTML email**:
+```php
+Mail::mailer('phpmailer')->html('<h1>Hello World</h1>', function ($message) {
+    $message->to('user@example.com')->subject('Test HTML Email');
+});
+```
+
+3. **Check your template path**:
+```php
+// Make sure your template exists at: resources/views/emails/welcome.blade.php
+// Or publish the package templates first:
+php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-templates
+```
+
 ## 🛡️ Error Handling & Responses
 
 ### Laravel's Native Error Handling
@@ -533,15 +599,39 @@ php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\Php
 ```php
 use Illuminate\Support\Facades\Mail;
 
-// Send welcome email using built-in template
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'vendor.phpmailer.emails.welcome',
-    'data' => [
-        'name' => 'John Doe',
-        'company' => 'Your Company',
-        'activation_link' => 'https://yourapp.com/activate/123'
-    ]
-]));
+// ✅ CORRECT - Using Mailable class (Recommended)
+class WelcomeEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('vendor.phpmailer.emails.welcome')
+                    ->subject('Welcome to ' . config('app.name'))
+                    ->with([
+                        'name' => 'John Doe',
+                        'company' => 'Your Company',
+                        'activation_link' => 'https://yourapp.com/activate/123'
+                    ]);
+    }
+}
+
+// Send the email
+Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
+
+// ✅ CORRECT - Using raw HTML with template rendering
+$html = view('vendor.phpmailer.emails.welcome', [
+    'name' => 'John Doe',
+    'company' => 'Your Company',
+    'activation_link' => 'https://yourapp.com/activate/123'
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
+
+// ✅ CORRECT - Simple approach without templates
+Mail::mailer('phpmailer')->raw('Hello John Doe, welcome to Your Company!', function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
 ```
 
 #### **Using Mailable Classes with Templates**
@@ -581,32 +671,75 @@ Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail($user, 
 ```php
 use Illuminate\Support\Facades\Mail;
 
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'vendor.phpmailer.emails.password-reset',
-    'data' => [
-        'name' => 'John Doe',
-        'reset_link' => 'https://yourapp.com/reset-password?token=abc123',
-        'expires_in' => '60 minutes'
-    ]
-]));
+// ✅ CORRECT - Using Mailable class
+class PasswordResetEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('vendor.phpmailer.emails.password-reset')
+                    ->subject('Password Reset Request')
+                    ->with([
+                        'name' => 'John Doe',
+                        'reset_link' => 'https://yourapp.com/reset-password?token=abc123',
+                        'expires_in' => '60 minutes'
+                    ]);
+    }
+}
+
+Mail::mailer('phpmailer')->to('user@example.com')->send(new PasswordResetEmail());
+
+// ✅ CORRECT - Using HTML with template rendering
+$html = view('vendor.phpmailer.emails.password-reset', [
+    'name' => 'John Doe',
+    'reset_link' => 'https://yourapp.com/reset-password?token=abc123',
+    'expires_in' => '60 minutes'
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Password Reset Request');
+});
 ```
 
 #### **Order Confirmation Template**
 
 ```php
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'vendor.phpmailer.emails.order-confirmation',
-    'data' => [
-        'name' => 'John Doe',
-        'order_number' => 'ORD-2024-001',
-        'order_date' => now()->format('F j, Y'),
-        'total_amount' => '$99.99',
-        'items' => [
-            ['name' => 'Product 1', 'price' => '$49.99'],
-            ['name' => 'Product 2', 'price' => '$50.00']
-        ]
+// ✅ CORRECT - Using Mailable class
+class OrderConfirmationEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('vendor.phpmailer.emails.order-confirmation')
+                    ->subject('Order Confirmation - ORD-2024-001')
+                    ->with([
+                        'name' => 'John Doe',
+                        'order_number' => 'ORD-2024-001',
+                        'order_date' => now()->format('F j, Y'),
+                        'total_amount' => '$99.99',
+                        'items' => [
+                            ['name' => 'Product 1', 'price' => '$49.99'],
+                            ['name' => 'Product 2', 'price' => '$50.00']
+                        ]
+                    ]);
+    }
+}
+
+Mail::mailer('phpmailer')->to('user@example.com')->send(new OrderConfirmationEmail());
+
+// ✅ CORRECT - Using HTML with template rendering
+$html = view('vendor.phpmailer.emails.order-confirmation', [
+    'name' => 'John Doe',
+    'order_number' => 'ORD-2024-001',
+    'order_date' => now()->format('F j, Y'),
+    'total_amount' => '$99.99',
+    'items' => [
+        ['name' => 'Product 1', 'price' => '$49.99'],
+        ['name' => 'Product 2', 'price' => '$50.00']
     ]
-]));
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Order Confirmation - ORD-2024-001');
+});
 ```
 
 ### Creating Custom Templates
@@ -1117,6 +1250,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.1** - Added comprehensive template usage documentation and fixed template errors
 - **v1.1.0** - Added comprehensive error handling, logging, and Laravel native integration
 - **v1.0.9** - Fixed attachment handling with correct Symfony Mailer methods
 - **v1.0.8** - Fixed Stringable interface implementation with __toString() method
