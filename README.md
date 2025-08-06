@@ -259,6 +259,223 @@ Mail::mailer('phpmailer')->raw('Hello', function ($message) {
 1. Run `composer dump-autoload`
 2. Clear all caches: `php artisan config:clear && php artisan cache:clear`
 
+## 🛡️ Error Handling & Responses
+
+### Laravel's Native Error Handling
+
+The PHPMailer driver integrates seamlessly with Laravel's native error handling system:
+
+#### **Automatic Logging**
+All email operations are automatically logged to Laravel's log system:
+
+```php
+// Successful email sends are logged as INFO
+Log::info('Email sent successfully via PHPMailer', [
+    'to' => ['user@example.com'],
+    'subject' => 'Welcome Email',
+    'message_id' => 'phpmailer_abc123'
+]);
+
+// Failed email sends are logged as ERROR
+Log::error('PHPMailer failed to send email', [
+    'error' => 'SMTP connect() failed',
+    'to' => ['user@example.com'],
+    'subject' => 'Welcome Email',
+    'host' => 'smtp.gmail.com',
+    'port' => 587
+]);
+```
+
+#### **Exception Handling**
+The driver throws proper Symfony Mailer exceptions that Laravel can handle:
+
+```php
+use Symfony\Component\Mailer\Exception\TransportException;
+
+try {
+    Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
+} catch (TransportException $e) {
+    // Handle email sending errors
+    Log::error('Email sending failed: ' . $e->getMessage());
+    
+    // You can also notify administrators
+    // or implement retry logic
+}
+```
+
+#### **Queue Integration**
+When using Laravel's queue system, failed jobs are automatically handled:
+
+```php
+// Queue the email
+Mail::mailer('phpmailer')->to('user@example.com')->queue(new WelcomeEmail());
+
+// Failed jobs will be retried according to your queue configuration
+// You can monitor failed jobs with: php artisan queue:failed
+```
+
+### **Error Types & Responses**
+
+#### **1. Configuration Errors**
+```php
+// Missing SMTP credentials
+TransportException: "PHPMailer error: SMTP connect() failed"
+
+// Missing from address
+TransportException: "No from address specified and no default from address configured"
+
+// Missing recipients
+TransportException: "No recipients specified for the email"
+```
+
+#### **2. SMTP Errors**
+```php
+// Authentication failed
+TransportException: "PHPMailer error: SMTP Error: Could not authenticate"
+
+// Connection timeout
+TransportException: "PHPMailer error: SMTP connect() failed"
+
+// Invalid credentials
+TransportException: "PHPMailer error: SMTP Error: Authentication failed"
+```
+
+#### **3. Content Errors**
+```php
+// Invalid email format
+TransportException: "PHPMailer error: Invalid address: invalid-email"
+
+// Attachment issues
+TransportException: "PHPMailer error: Could not access file: /path/to/file"
+```
+
+### **Debugging & Troubleshooting**
+
+#### **Enable Debug Mode**
+```env
+MAIL_DEBUG=true
+```
+
+This will show detailed SMTP communication in your logs.
+
+#### **Check Laravel Logs**
+```bash
+# View recent logs
+tail -f storage/logs/laravel.log
+
+# Search for PHPMailer errors
+grep "PHPMailer" storage/logs/laravel.log
+```
+
+#### **Test SMTP Connection**
+```bash
+# Use the built-in test command
+php artisan phpmailer:test --to=your@email.com
+```
+
+#### **Monitor Queue Jobs**
+```bash
+# Check failed jobs
+php artisan queue:failed
+
+# Retry failed jobs
+php artisan queue:retry all
+```
+
+### **Custom Error Handling**
+
+#### **Global Exception Handler**
+```php
+// app/Exceptions/Handler.php
+public function register(): void
+{
+    $this->reportable(function (TransportException $e) {
+        // Custom handling for email transport errors
+        if (str_contains($e->getMessage(), 'PHPMailer')) {
+            // Notify administrators
+            // Log to external service
+            // Send alert to monitoring system
+        }
+    });
+}
+```
+
+#### **Middleware for Email Errors**
+```php
+// Create custom middleware to handle email errors
+class EmailErrorMiddleware
+{
+    public function handle($request, Closure $next)
+    {
+        try {
+            return $next($request);
+        } catch (TransportException $e) {
+            // Handle email errors in web requests
+            return response()->json([
+                'error' => 'Email service temporarily unavailable',
+                'message' => 'Please try again later'
+            ], 503);
+        }
+    }
+}
+```
+
+#### **Event Listeners**
+```php
+// Listen for email events
+Event::listen('mailer.sending', function ($message) {
+    Log::info('Attempting to send email', [
+        'to' => $message->getTo(),
+        'subject' => $message->getSubject()
+    ]);
+});
+
+Event::listen('mailer.sent', function ($message) {
+    Log::info('Email sent successfully', [
+        'to' => $message->getTo(),
+        'subject' => $message->getSubject()
+    ]);
+});
+```
+
+### **Response Handling**
+
+#### **Synchronous Responses**
+```php
+// Check if email was sent successfully
+try {
+    Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
+    return response()->json(['message' => 'Email sent successfully']);
+} catch (TransportException $e) {
+    return response()->json(['error' => 'Failed to send email'], 500);
+}
+```
+
+#### **Asynchronous Responses**
+```php
+// Queue the email and return immediately
+Mail::mailer('phpmailer')->to('user@example.com')->queue(new WelcomeEmail());
+
+return response()->json(['message' => 'Email queued for delivery']);
+```
+
+#### **Batch Email Handling**
+```php
+$results = [];
+$emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
+
+foreach ($emails as $email) {
+    try {
+        Mail::mailer('phpmailer')->to($email)->send(new NewsletterEmail());
+        $results[$email] = 'sent';
+    } catch (TransportException $e) {
+        $results[$email] = 'failed: ' . $e->getMessage();
+    }
+}
+
+return response()->json(['results' => $results]);
+```
+
 ## 🧪 Testing
 
 ### Test Email Sending
@@ -309,17 +526,530 @@ php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\Php
 - **Contact Form** - `resources/views/vendor/phpmailer/emails/contact-form.blade.php`
 - **Newsletter** - `resources/views/vendor/phpmailer/emails/newsletter.blade.php`
 
-### Using Templates
+### Using Built-in Templates
+
+#### **Basic Template Usage**
 
 ```php
+use Illuminate\Support\Facades\Mail;
+
+// Send welcome email using built-in template
 Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
     'view' => 'vendor.phpmailer.emails.welcome',
     'data' => [
         'name' => 'John Doe',
-        'company' => 'Your Company'
+        'company' => 'Your Company',
+        'activation_link' => 'https://yourapp.com/activate/123'
     ]
 ]));
 ```
+
+#### **Using Mailable Classes with Templates**
+
+```php
+use Illuminate\Mail\Mailable;
+
+class WelcomeEmail extends Mailable
+{
+    public $user;
+    public $activationLink;
+
+    public function __construct($user, $activationLink)
+    {
+        $this->user = $user;
+        $this->activationLink = $activationLink;
+    }
+
+    public function build()
+    {
+        return $this->view('vendor.phpmailer.emails.welcome')
+                    ->subject('Welcome to ' . config('app.name'))
+                    ->with([
+                        'name' => $this->user->name,
+                        'company' => config('app.name'),
+                        'activation_link' => $this->activationLink
+                    ]);
+    }
+}
+
+// Send the email
+Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail($user, $activationLink));
+```
+
+#### **Password Reset Template**
+
+```php
+use Illuminate\Support\Facades\Mail;
+
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'vendor.phpmailer.emails.password-reset',
+    'data' => [
+        'name' => 'John Doe',
+        'reset_link' => 'https://yourapp.com/reset-password?token=abc123',
+        'expires_in' => '60 minutes'
+    ]
+]));
+```
+
+#### **Order Confirmation Template**
+
+```php
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'vendor.phpmailer.emails.order-confirmation',
+    'data' => [
+        'name' => 'John Doe',
+        'order_number' => 'ORD-2024-001',
+        'order_date' => now()->format('F j, Y'),
+        'total_amount' => '$99.99',
+        'items' => [
+            ['name' => 'Product 1', 'price' => '$49.99'],
+            ['name' => 'Product 2', 'price' => '$50.00']
+        ]
+    ]
+]));
+```
+
+### Creating Custom Templates
+
+#### **Template Structure**
+
+Create your custom template in `resources/views/emails/`:
+
+```php
+// resources/views/emails/custom-welcome.blade.php
+@extends('vendor.phpmailer.emails.layouts.base')
+
+@section('content')
+<div class="email-container">
+    <div class="header">
+        <h1>Welcome to {{ $company }}</h1>
+    </div>
+    
+    <div class="content">
+        <p>Hello {{ $name }},</p>
+        <p>Thank you for joining {{ $company }}! We're excited to have you on board.</p>
+        
+        @if(isset($activation_link))
+        <div class="cta-button">
+            <a href="{{ $activation_link }}" class="button">Activate Your Account</a>
+        </div>
+        @endif
+        
+        <p>If you have any questions, feel free to contact our support team.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Best regards,<br>The {{ $company }} Team</p>
+    </div>
+</div>
+@endsection
+```
+
+#### **Using Custom Templates**
+
+```php
+// Send custom template
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'emails.custom-welcome',
+    'data' => [
+        'name' => 'John Doe',
+        'company' => 'Your Company',
+        'activation_link' => 'https://yourapp.com/activate/123'
+    ]
+]));
+
+// Or using Mailable class
+class CustomWelcomeEmail extends Mailable
+{
+    public function build()
+    {
+        return $this->view('emails.custom-welcome')
+                    ->subject('Welcome to ' . config('app.name'))
+                    ->with([
+                        'name' => $this->user->name,
+                        'company' => config('app.name'),
+                        'activation_link' => $this->activationLink
+                    ]);
+    }
+}
+```
+
+### Template Variables & Data
+
+#### **Common Template Variables**
+
+```php
+// Available variables in all templates
+$data = [
+    'name' => 'John Doe',                    // User's name
+    'company' => 'Your Company',             // Company name
+    'app_name' => config('app.name'),        // Application name
+    'app_url' => config('app.url'),          // Application URL
+    'support_email' => 'support@company.com', // Support email
+    'logo_url' => 'https://company.com/logo.png', // Company logo
+    'year' => date('Y'),                     // Current year
+    'date' => now()->format('F j, Y'),       // Current date
+];
+```
+
+#### **Conditional Content in Templates**
+
+```php
+{{-- resources/views/emails/dynamic-content.blade.php --}}
+@extends('vendor.phpmailer.emails.layouts.base')
+
+@section('content')
+<div class="email-container">
+    <h1>Hello {{ $name }}!</h1>
+    
+    @if(isset($welcome_message))
+        <p>{{ $welcome_message }}</p>
+    @endif
+    
+    @if(isset($features) && count($features) > 0)
+        <h2>Key Features:</h2>
+        <ul>
+            @foreach($features as $feature)
+                <li>{{ $feature }}</li>
+            @endforeach
+        </ul>
+    @endif
+    
+    @if(isset($cta_button))
+        <div class="cta-button">
+            <a href="{{ $cta_button['url'] }}" class="button">
+                {{ $cta_button['text'] }}
+            </a>
+        </div>
+    @endif
+</div>
+@endsection
+```
+
+#### **Using Dynamic Content**
+
+```php
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'emails.dynamic-content',
+    'data' => [
+        'name' => 'John Doe',
+        'welcome_message' => 'Welcome to our platform!',
+        'features' => [
+            'Feature 1: Easy to use',
+            'Feature 2: Secure',
+            'Feature 3: Fast'
+        ],
+        'cta_button' => [
+            'text' => 'Get Started',
+            'url' => 'https://yourapp.com/dashboard'
+        ]
+    ]
+]));
+```
+
+### Template Styling & Layouts
+
+#### **Base Layout Template**
+
+```php
+{{-- resources/views/vendor/phpmailer/emails/layouts/base.blade.php --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $subject ?? 'Email from ' . config('app.name') }}</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+            background: #ffffff;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        @yield('content')
+    </div>
+</body>
+</html>
+```
+
+#### **Custom Styling**
+
+```php
+{{-- resources/views/emails/styled-template.blade.php --}}
+@extends('vendor.phpmailer.emails.layouts.base')
+
+@section('content')
+<style>
+    .custom-header {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        border-radius: 10px 10px 0 0;
+    }
+    .custom-content {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    .custom-button {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div class="custom-header">
+    <h1>{{ $title }}</h1>
+</div>
+
+<div class="custom-content">
+    <p>{{ $message }}</p>
+    
+    @if(isset($action_url))
+    <a href="{{ $action_url }}" class="button custom-button">
+        {{ $action_text ?? 'Click Here' }}
+    </a>
+    @endif
+</div>
+@endsection
+```
+
+### Template Localization
+
+#### **Multi-language Templates**
+
+```php
+{{-- resources/views/emails/localized-welcome.blade.php --}}
+@extends('vendor.phpmailer.emails.layouts.base')
+
+@section('content')
+<div class="email-container">
+    <div class="header">
+        <h1>{{ __('emails.welcome.title', ['company' => $company]) }}</h1>
+    </div>
+    
+    <div class="content">
+        <p>{{ __('emails.welcome.greeting', ['name' => $name]) }}</p>
+        <p>{{ __('emails.welcome.message') }}</p>
+        
+        @if(isset($activation_link))
+        <div class="cta-button">
+            <a href="{{ $activation_link }}" class="button">
+                {{ __('emails.welcome.activate_button') }}
+            </a>
+        </div>
+        @endif
+    </div>
+    
+    <div class="footer">
+        <p>{{ __('emails.welcome.footer', ['company' => $company]) }}</p>
+    </div>
+</div>
+@endsection
+```
+
+#### **Language Files**
+
+```php
+// resources/lang/en/emails.php
+return [
+    'welcome' => [
+        'title' => 'Welcome to :company',
+        'greeting' => 'Hello :name,',
+        'message' => 'Thank you for joining our platform!',
+        'activate_button' => 'Activate Your Account',
+        'footer' => 'Best regards, The :company Team'
+    ]
+];
+
+// resources/lang/es/emails.php
+return [
+    'welcome' => [
+        'title' => 'Bienvenido a :company',
+        'greeting' => 'Hola :name,',
+        'message' => '¡Gracias por unirte a nuestra plataforma!',
+        'activate_button' => 'Activar Tu Cuenta',
+        'footer' => 'Saludos, El Equipo de :company'
+    ]
+];
+```
+
+#### **Sending Localized Emails**
+
+```php
+// Set locale before sending
+app()->setLocale('es');
+
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'emails.localized-welcome',
+    'data' => [
+        'name' => 'Juan Pérez',
+        'company' => 'Mi Empresa'
+    ]
+]));
+```
+
+### Template Testing
+
+#### **Testing Templates in Development**
+
+```php
+// Create a test route for template preview
+Route::get('/test-email-template', function () {
+    return view('emails.custom-welcome', [
+        'name' => 'Test User',
+        'company' => 'Test Company',
+        'activation_link' => 'https://example.com/activate'
+    ]);
+});
+```
+
+#### **Template Validation**
+
+```php
+// Validate template data before sending
+class EmailTemplateValidator
+{
+    public static function validateWelcomeEmail($data)
+    {
+        $rules = [
+            'name' => 'required|string|max:255',
+            'company' => 'required|string|max:255',
+            'activation_link' => 'required|url'
+        ];
+        
+        return Validator::make($data, $rules);
+    }
+}
+
+// Usage
+$data = [
+    'name' => 'John Doe',
+    'company' => 'Your Company',
+    'activation_link' => 'https://yourapp.com/activate/123'
+];
+
+$validator = EmailTemplateValidator::validateWelcomeEmail($data);
+
+if ($validator->fails()) {
+    // Handle validation errors
+    return response()->json(['errors' => $validator->errors()], 422);
+}
+
+// Send email if validation passes
+Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
+    'view' => 'emails.custom-welcome',
+    'data' => $data
+]));
+```
+
+### Advanced Template Features
+
+#### **Template Inheritance**
+
+```php
+{{-- resources/views/emails/layouts/advanced.blade.php --}}
+<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Email from ' . config('app.name'))</title>
+    @yield('styles')
+</head>
+<body>
+    @yield('header')
+    
+    <main>
+        @yield('content')
+    </main>
+    
+    @yield('footer')
+    
+    @yield('scripts')
+</body>
+</html>
+```
+
+#### **Component-based Templates**
+
+```php
+{{-- resources/views/emails/components/header.blade.php --}}
+<div class="email-header">
+    <img src="{{ $logo_url ?? config('app.logo_url') }}" alt="{{ $company }}" class="logo">
+    <h1>{{ $title }}</h1>
+</div>
+
+{{-- resources/views/emails/components/footer.blade.php --}}
+<div class="email-footer">
+    <p>{{ $footer_text ?? 'Thank you for using our service.' }}</p>
+    <div class="social-links">
+        @if(isset($social_links))
+            @foreach($social_links as $platform => $url)
+                <a href="{{ $url }}">{{ ucfirst($platform) }}</a>
+            @endforeach
+        @endif
+    </div>
+</div>
+
+{{-- Using components in templates --}}
+@extends('vendor.phpmailer.emails.layouts.advanced')
+
+@section('content')
+    @include('emails.components.header', [
+        'title' => 'Welcome!',
+        'company' => $company,
+        'logo_url' => $logo_url
+    ])
+    
+    <div class="main-content">
+        <p>Hello {{ $name }},</p>
+        <p>{{ $message }}</p>
+    </div>
+    
+    @include('emails.components.footer', [
+        'footer_text' => 'Best regards, The ' . $company . ' Team',
+        'social_links' => [
+            'facebook' => 'https://facebook.com/company',
+            'twitter' => 'https://twitter.com/company'
+        ]
+    ])
+@endsection
+```
+
+This comprehensive template usage guide covers everything from basic template usage to advanced features like localization, component-based templates, and testing strategies!
 
 ## 🌍 Internationalization
 
@@ -387,6 +1117,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.0** - Added comprehensive error handling, logging, and Laravel native integration
 - **v1.0.9** - Fixed attachment handling with correct Symfony Mailer methods
 - **v1.0.8** - Fixed Stringable interface implementation with __toString() method
 - **v1.0.7** - Enhanced transport with attachment support, custom headers, debug mode, and improved error handling

@@ -8,6 +8,7 @@ use Symfony\Component\Mime\Message;
 use Symfony\Component\Mime\Part\DataPart;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Illuminate\Support\Facades\Log;
 
 class PhpMailerTransport extends AbstractTransport
 {
@@ -21,6 +22,8 @@ class PhpMailerTransport extends AbstractTransport
 
     protected function doSend(SentMessage $message): void
     {
+        $mailer = null;
+        
         try {
             $mailer = new PHPMailer(true);
             
@@ -70,6 +73,10 @@ class PhpMailerTransport extends AbstractTransport
                 $defaultFromName = $this->getConfigValue('from_name', '');
                 if ($defaultFrom) {
                     $mailer->setFrom($defaultFrom, $defaultFromName);
+                } else {
+                    throw new \Symfony\Component\Mailer\Exception\TransportException(
+                        'No from address specified and no default from address configured'
+                    );
                 }
             }
             
@@ -136,18 +143,41 @@ class PhpMailerTransport extends AbstractTransport
             
             // Send the email
             if (!$mailer->send()) {
+                $errorInfo = $mailer->ErrorInfo ?: 'Unknown PHPMailer error';
+                Log::error('PHPMailer failed to send email', [
+                    'error' => $errorInfo,
+                    'to' => $this->getRecipientList($to),
+                    'subject' => $subject,
+                    'host' => $mailer->Host,
+                    'port' => $mailer->Port
+                ]);
+                
                 throw new \Symfony\Component\Mailer\Exception\TransportException(
-                    'PHPMailer failed to send email: ' . $mailer->ErrorInfo
+                    'PHPMailer failed to send email: ' . $errorInfo
                 );
             }
+            
+            // Log successful send
+            Log::info('Email sent successfully via PHPMailer', [
+                'to' => $this->getRecipientList($to),
+                'subject' => $subject,
+                'message_id' => $mailer->getLastMessageID()
+            ]);
             
             // Set the message ID in the SentMessage
             $messageId = $mailer->getLastMessageID() ?: uniqid('phpmailer_', true);
             $message->setMessageId($messageId);
             
         } catch (Exception $e) {
+            $this->logPhpMailerError($e, $mailer);
             throw new \Symfony\Component\Mailer\Exception\TransportException(
                 'PHPMailer error: ' . $e->getMessage(),
+                previous: $e
+            );
+        } catch (\Exception $e) {
+            $this->logGeneralError($e, $mailer);
+            throw new \Symfony\Component\Mailer\Exception\TransportException(
+                'General error: ' . $e->getMessage(),
                 previous: $e
             );
         }
@@ -208,6 +238,64 @@ class PhpMailerTransport extends AbstractTransport
                 $mailer->addCustomHeader($name, $value);
             }
         }
+    }
+
+    /**
+     * Log PHPMailer specific errors
+     */
+    private function logPhpMailerError(Exception $e, ?PHPMailer $mailer): void
+    {
+        $context = [
+            'error' => $e->getMessage(),
+            'code' => $e->getCode(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ];
+
+        if ($mailer) {
+            $context['host'] = $mailer->Host;
+            $context['port'] = $mailer->Port;
+            $context['username'] = $mailer->Username;
+        }
+
+        Log::error('PHPMailer transport error', $context);
+    }
+
+    /**
+     * Log general errors
+     */
+    private function logGeneralError(\Exception $e, ?PHPMailer $mailer): void
+    {
+        $context = [
+            'error' => $e->getMessage(),
+            'code' => $e->getCode(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ];
+
+        if ($mailer) {
+            $context['host'] = $mailer->Host;
+            $context['port'] = $mailer->Port;
+        }
+
+        Log::error('General transport error', $context);
+    }
+
+    /**
+     * Get recipient list for logging
+     */
+    private function getRecipientList($recipients): array
+    {
+        if (empty($recipients)) {
+            return [];
+        }
+
+        $list = [];
+        foreach ($recipients as $recipient) {
+            $list[] = $recipient->getAddress();
+        }
+
+        return $list;
     }
 
     /**

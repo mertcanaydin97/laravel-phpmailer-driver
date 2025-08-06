@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Laravel PHPMailer Driver v1.0.9 Release
+echo Laravel PHPMailer Driver v1.1.0 Release
 echo ========================================
 echo.
 
@@ -13,11 +13,11 @@ git add .
 echo.
 
 echo [3/8] Committing changes...
-git commit -m "Release v1.0.9 - Fixed attachment handling with correct Symfony Mailer methods"
+git commit -m "Release v1.1.0 - Added comprehensive error handling, logging, and Laravel native integration"
 echo.
 
-echo [4/8] Creating tag v1.0.9...
-git tag -a v1.0.9 -m "Version 1.0.9 - Fixed attachment handling with correct Symfony Mailer methods"
+echo [4/8] Creating tag v1.1.0...
+git tag -a v1.1.0 -m "Version 1.1.0 - Added comprehensive error handling, logging, and Laravel native integration"
 echo.
 
 echo [5/8] Pushing to GitHub...
@@ -25,7 +25,7 @@ git push origin main
 echo.
 
 echo [6/8] Pushing tag to GitHub...
-git push origin v1.0.9
+git push origin v1.1.0
 echo.
 
 echo [7/8] Updating composer dependencies...
@@ -37,14 +37,22 @@ echo Please manually publish to Packagist at: https://packagist.org/packages/mer
 echo.
 
 echo ========================================
-echo Release v1.0.9 completed successfully!
+echo Release v1.1.0 completed successfully!
 echo ========================================
 echo.
-echo What's new in v1.0.9:
+echo What's new in v1.1.0:
+echo - Comprehensive error handling and logging
+echo - Laravel native integration with automatic logging
+echo - Detailed error types and responses
+echo - Queue integration with failed job handling
+echo - Custom error handling examples
+echo - Response handling for sync and async operations
+echo - Enhanced debugging and troubleshooting
+echo.
+echo Previous v1.0.9 features:
 echo - Fixed attachment handling with correct Symfony Mailer methods
 echo - Replaced getParts() with getAttachments() method
 echo - Added proper type checking for Email instances
-echo - Enhanced attachment processing with proper MIME types
 echo.
 echo Previous v1.0.8 features:
 echo - Fixed Stringable interface implementation
@@ -64,5 +72,6 @@ echo Next steps:
 echo 1. Wait for Packagist to update (usually 5-10 minutes)
 echo 2. Test the new version in a Laravel project
 echo 3. Update documentation if needed
+echo 4. Test error handling and logging features
 echo.
 pause
