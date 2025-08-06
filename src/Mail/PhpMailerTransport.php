@@ -202,6 +202,18 @@ class PhpMailerTransport extends AbstractTransport
         }
     }
 
+    /**
+     * Get a string representation of the transport
+     */
+    public function __toString(): string
+    {
+        $host = $this->getConfigValue('host', 'localhost');
+        $port = $this->getConfigValue('port', 587);
+        $encryption = $this->getConfigValue('encryption', 'tls');
+        
+        return sprintf('phpmailer://%s:%d?encryption=%s', $host, $port, $encryption);
+    }
+
     private function getConfigValue($key, $default = null)
     {
         return isset($this->config[$key]) ? $this->config[$key] : $default;

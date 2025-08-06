@@ -387,6 +387,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.0.8** - Fixed Stringable interface implementation with __toString() method
 - **v1.0.7** - Enhanced transport with attachment support, custom headers, debug mode, and improved error handling
 - **v1.0.6** - Fixed Symfony Mailer compatibility and method signatures
 - **v1.0.5** - Laravel 10+ configuration improvements
