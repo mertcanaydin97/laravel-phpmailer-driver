@@ -6,8 +6,8 @@ use Orchestra\Testbench\TestCase;
 use Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider;
 use Mertcanaydin97\LaravelPhpMailerDriver\Mail\PhpMailerTransport;
 use Illuminate\Support\Facades\Mail;
-use Swift_Message;
-use Swift_Attachment;
+use Symfony\Component\Mime\Message;
+use Symfony\Component\Mime\Email;
 
 class PhpMailerTransportTest extends TestCase
 {

@@ -18,4 +18,11 @@ return [
     'password' => env('MAIL_PASSWORD'),
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
     'timeout' => env('MAIL_TIMEOUT', 30),
+    
+    // Debug mode for troubleshooting
+    'debug' => env('MAIL_DEBUG', false),
+    
+    // Default from address and name (used if not specified in the message)
+    'from_address' => env('MAIL_FROM_ADDRESS'),
+    'from_name' => env('MAIL_FROM_NAME'),
 ]; 
