@@ -158,22 +158,30 @@ class PhpMailerTransport extends AbstractTransport
      */
     private function addAttachments(PHPMailer $mailer, Message $message): void
     {
-        $parts = $message->getParts();
-        if (empty($parts)) {
+        // Check if the message has attachments
+        if (!$message instanceof \Symfony\Component\Mime\Email) {
             return;
         }
 
-        foreach ($parts as $part) {
-            if ($part instanceof DataPart) {
-                $filename = $part->getFilename();
-                $content = $part->getBody();
+        // Get attachments from the email
+        $attachments = $message->getAttachments();
+        if (empty($attachments)) {
+            return;
+        }
+
+        foreach ($attachments as $attachment) {
+            if ($attachment instanceof \Symfony\Component\Mime\Part\DataPart) {
+                $filename = $attachment->getFilename();
+                $content = $attachment->getBody();
+                $mediaType = $attachment->getMediaType();
+                $mediaSubtype = $attachment->getMediaSubtype();
                 
                 if ($filename && $content) {
                     $mailer->addStringAttachment(
                         $content,
                         $filename,
                         PHPMailer::ENCODING_BASE64,
-                        $part->getMediaType() . '/' . $part->getMediaSubtype()
+                        $mediaType . '/' . $mediaSubtype
                     );
                 }
             }
