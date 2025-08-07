@@ -54,8 +54,27 @@ class PhpMailerTransport extends AbstractTransport
             
             // Enable debug if configured
             $debug = $this->getConfigValue('debug', false);
+            $debugLevel = $this->getConfigValue('debug_level', 0);
+            $debugOutput = $this->getConfigValue('debug_output', 'error_log');
+            
             if ($debug) {
-                $mailer->SMTPDebug = 2; // Enable verbose debug output
+                $mailer->SMTPDebug = $debugLevel; // Use configured debug level
+                $mailer->Debugoutput = $debugOutput; // Use configured debug output
+            }
+            
+            // Configure SSL/TLS verification options
+            $sslVerifyPeer = $this->getConfigValue('ssl_verify_peer', true);
+            $sslVerifyPeerName = $this->getConfigValue('ssl_verify_peer_name', true);
+            $sslAllowSelfSigned = $this->getConfigValue('ssl_allow_self_signed', false);
+            
+            if (!$sslVerifyPeer || !$sslVerifyPeerName || $sslAllowSelfSigned) {
+                $mailer->SMTPOptions = [
+                    'ssl' => [
+                        'verify_peer'       => $sslVerifyPeer,
+                        'verify_peer_name'  => $sslVerifyPeerName,
+                        'allow_self_signed' => $sslAllowSelfSigned,
+                    ],
+                ];
             }
             
             // Get the original message from SentMessage

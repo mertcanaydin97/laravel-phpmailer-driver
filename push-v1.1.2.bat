@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Laravel PHPMailer Driver v1.1.1 Release
+echo Laravel PHPMailer Driver v1.1.2 Release
 echo ========================================
 echo.
 
@@ -13,11 +13,11 @@ git add .
 echo.
 
 echo [3/8] Committing changes...
-git commit -m "Release v1.1.1 - Added comprehensive template usage documentation and fixed template errors"
+git commit -m "Release v1.1.2 - Added SSL verification options and enhanced debug settings"
 echo.
 
-echo [4/8] Creating tag v1.1.1...
-git tag -a v1.1.1 -m "Version 1.1.1 - Added comprehensive template usage documentation and fixed template errors"
+echo [4/8] Creating tag v1.1.2...
+git tag -a v1.1.2 -m "Version 1.1.2 - Added SSL verification options and enhanced debug settings"
 echo.
 
 echo [5/8] Pushing to GitHub...
@@ -25,7 +25,7 @@ git push origin main
 echo.
 
 echo [6/8] Pushing tag to GitHub...
-git push origin v1.1.1
+git push origin v1.1.2
 echo.
 
 echo [7/8] Updating composer dependencies...
@@ -37,10 +37,20 @@ echo Please manually publish to Packagist at: https://packagist.org/packages/mer
 echo.
 
 echo ========================================
-echo Release v1.1.1 completed successfully!
+echo Release v1.1.2 completed successfully!
 echo ========================================
 echo.
-echo What's new in v1.1.1:
+echo What's new in v1.1.2:
+echo - Added SSL verification options (verify_peer, verify_peer_name, allow_self_signed)
+echo - Enhanced debug settings with configurable levels and output methods
+echo - Added debug level configuration (0-4) for different verbosity levels
+echo - Added debug output method configuration (error_log, echo, html)
+echo - Added SSL options for development environments with self-signed certificates
+echo - Updated configuration file with new SSL and debug options
+echo - Updated documentation with SSL verification examples and warnings
+echo - Added environment variables for all new SSL and debug options
+echo.
+echo Previous v1.1.1 features:
 echo - Comprehensive template usage documentation
 echo - Fixed "Class Illuminate\Mail\Transport\Transport not found" error
 echo - Added correct template usage examples with Mailable classes
@@ -81,9 +91,8 @@ echo.
 echo Next steps:
 echo 1. Wait for Packagist to update (usually 5-10 minutes)
 echo 2. Test the new version in a Laravel project
-echo 3. Test template usage with the new documentation
-echo 4. Verify that template errors are resolved
-echo 5. Test the comprehensive template features
+echo 3. Test SSL verification options with self-signed certificates
+echo 4. Test enhanced debug levels and output methods
+echo 5. Verify that SSL options work correctly in development
 echo.
 pause
-

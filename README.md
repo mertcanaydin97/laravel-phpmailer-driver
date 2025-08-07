@@ -7,7 +7,7 @@
 
 > **❗️ IMPORTANT: This package is optimized for Laravel 10+ with Symfony Mailer. If you see "Mailer [phpmailer] not defined", you MUST add the PHPMailer mailer config to your `config/mail.php` (see below) and clear your config cache!**
 
-A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMailer with Laravel's mail system. This package provides enterprise-grade email functionality with comprehensive attachment support, custom headers, and extensive debugging capabilities.
+A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMailer with Laravel's mail system. This package provides enterprise-grade email functionality with comprehensive attachment support, custom headers, SSL verification options, and extensive debugging capabilities.
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@ A powerful and feature-rich Laravel mail driver that seamlessly integrates PHPMa
 - **File Attachments** - Full support for file attachments with proper MIME types
 - **Recipient Management** - TO, CC, BCC, and Reply-To support
 - **Custom Headers** - Complete custom headers support for tracking and metadata
-- **Debug Mode** - Built-in SMTP debugging for troubleshooting
+- **SSL Verification Control** - Configurable SSL certificate verification options
 
 ### 🔧 Enhanced Features
 - **Type Safety** - Proper type casting and null safety checks
@@ -105,6 +105,11 @@ MAIL_FROM_ADDRESS=your-email@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
 MAIL_TIMEOUT=30
 MAIL_DEBUG=false
+MAIL_DEBUG_LEVEL=0
+MAIL_DEBUG_OUTPUT=error_log
+MAIL_SSL_VERIFY_PEER=true
+MAIL_SSL_VERIFY_PEER_NAME=true
+MAIL_SSL_ALLOW_SELF_SIGNED=false
 ```
 
 ### Step 4: Clear All Caches
@@ -206,6 +211,11 @@ Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
 | `MAIL_FROM_NAME` | Default from name | - |
 | `MAIL_TIMEOUT` | SMTP timeout in seconds | `30` |
 | `MAIL_DEBUG` | Enable SMTP debugging | `false` |
+| `MAIL_DEBUG_LEVEL` | Debug level (0-4) | `0` |
+| `MAIL_DEBUG_OUTPUT` | Debug output method | `error_log` |
+| `MAIL_SSL_VERIFY_PEER` | Verify SSL peer certificate | `true` |
+| `MAIL_SSL_VERIFY_PEER_NAME` | Verify SSL peer name | `true` |
+| `MAIL_SSL_ALLOW_SELF_SIGNED` | Allow self-signed certificates | `false` |
 
 ### Debug Mode
 
@@ -213,7 +223,33 @@ Enable debug mode to troubleshoot SMTP issues:
 
 ```env
 MAIL_DEBUG=true
+MAIL_DEBUG_LEVEL=2
+MAIL_DEBUG_OUTPUT=error_log
 ```
+
+#### **Debug Levels**
+- `0` - No debug output
+- `1` - Client messages
+- `2` - Client and server messages
+- `3` - Connection information
+- `4` - Low-level data
+
+#### **Debug Output Methods**
+- `error_log` - Output to PHP error log (default)
+- `echo` - Output to browser/console
+- `html` - Output as HTML
+
+#### **SSL Verification Options**
+
+For development or self-signed certificates, you can disable SSL verification:
+
+```env
+MAIL_SSL_VERIFY_PEER=false
+MAIL_SSL_VERIFY_PEER_NAME=false
+MAIL_SSL_ALLOW_SELF_SIGNED=true
+```
+
+**⚠️ Warning**: Only disable SSL verification in development environments. In production, always use proper SSL certificates.
 
 This will show detailed SMTP communication in your logs.
 
@@ -590,7 +626,6 @@ php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\Php
 - **Notification** - `resources/views/vendor/phpmailer/emails/notification.blade.php`
 - **Order Confirmation** - `resources/views/vendor/phpmailer/emails/order-confirmation.blade.php`
 - **Contact Form** - `resources/views/vendor/phpmailer/emails/contact-form.blade.php`
-- **Newsletter** - `resources/views/vendor/phpmailer/emails/newsletter.blade.php`
 
 ### Using Built-in Templates
 
@@ -781,16 +816,6 @@ Create your custom template in `resources/views/emails/`:
 #### **Using Custom Templates**
 
 ```php
-// Send custom template
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'emails.custom-welcome',
-    'data' => [
-        'name' => 'John Doe',
-        'company' => 'Your Company',
-        'activation_link' => 'https://yourapp.com/activate/123'
-    ]
-]));
-
 // Or using Mailable class
 class CustomWelcomeEmail extends Mailable
 {
@@ -862,22 +887,23 @@ $data = [
 #### **Using Dynamic Content**
 
 ```php
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'emails.dynamic-content',
-    'data' => [
-        'name' => 'John Doe',
-        'welcome_message' => 'Welcome to our platform!',
-        'features' => [
-            'Feature 1: Easy to use',
-            'Feature 2: Secure',
-            'Feature 3: Fast'
-        ],
-        'cta_button' => [
-            'text' => 'Get Started',
-            'url' => 'https://yourapp.com/dashboard'
-        ]
+$html = view('emails.dynamic-content', [
+    'name' => 'John Doe',
+    'welcome_message' => 'Welcome to our platform!',
+    'features' => [
+        'Feature 1: Easy to use',
+        'Feature 2: Secure',
+        'Feature 3: Fast'
+    ],
+    'cta_button' => [
+        'text' => 'Get Started',
+        'url' => 'https://yourapp.com/dashboard'
     ]
-]));
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
 ```
 
 ### Template Styling & Layouts
@@ -1045,13 +1071,14 @@ return [
 // Set locale before sending
 app()->setLocale('es');
 
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'emails.localized-welcome',
-    'data' => [
-        'name' => 'Juan Pérez',
-        'company' => 'Mi Empresa'
-    ]
-]));
+$html = view('emails.localized-welcome', [
+    'name' => 'Juan Pérez',
+    'company' => 'Mi Empresa'
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
 ```
 
 ### Template Testing
@@ -1102,10 +1129,10 @@ if ($validator->fails()) {
 }
 
 // Send email if validation passes
-Mail::mailer('phpmailer')->send(new \Illuminate\Mail\Message([
-    'view' => 'emails.custom-welcome',
-    'data' => $data
-]));
+$html = view('emails.custom-welcome', $data)->render();
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
 ```
 
 ### Advanced Template Features
@@ -1215,7 +1242,14 @@ php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\Php
 app()->setLocale('es');
 
 // Send email with Spanish translations
-Mail::mailer('phpmailer')->send(new WelcomeEmail());
+$html = view('emails.localized-welcome', [
+    'name' => 'Juan Pérez',
+    'company' => 'Mi Empresa'
+])->render();
+
+Mail::mailer('phpmailer')->html($html, function ($message) {
+    $message->to('user@example.com')->subject('Welcome Email');
+});
 ```
 
 ## 🎯 Troubleshooting Checklist
@@ -1229,6 +1263,8 @@ If you're still having issues, follow this checklist:
 5. ✅ **Autoload refreshed**: `composer dump-autoload`
 6. ✅ **Test command works**: `php artisan phpmailer:test`
 7. ✅ **Debug mode enabled**: Set `MAIL_DEBUG=true` for detailed logs
+8. ✅ **SSL verification**: Check SSL settings for your SMTP provider
+9. ✅ **Template paths**: Verify template paths and publish if needed
 
 ## 📞 Need Help?
 
@@ -1239,6 +1275,7 @@ If you're still experiencing issues:
 3. Verify your SMTP settings
 4. Test with a different email provider (Gmail, Outlook, etc.)
 5. Check the test command output for specific error messages
+6. Review SSL verification settings for your environment
 
 ## 📄 License
 
@@ -1250,6 +1287,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.2** - Added SSL verification options and enhanced debug settings
 - **v1.1.1** - Added comprehensive template usage documentation and fixed template errors
 - **v1.1.0** - Added comprehensive error handling, logging, and Laravel native integration
 - **v1.0.9** - Fixed attachment handling with correct Symfony Mailer methods
