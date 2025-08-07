@@ -92,6 +92,12 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'timeout' => env('MAIL_TIMEOUT', 30),
+            'debug' => env('MAIL_DEBUG', false),
+            'debug_level' => env('MAIL_DEBUG_LEVEL', 0),
+            'debug_output' => env('MAIL_DEBUG_OUTPUT', 'error_log'),
+            'ssl_verify_peer' => env('MAIL_SSL_VERIFY_PEER', true),
+            'ssl_verify_peer_name' => env('MAIL_SSL_VERIFY_PEER_NAME', true),
+            'ssl_allow_self_signed' => env('MAIL_SSL_ALLOW_SELF_SIGNED', false),
         ],
     ],
 

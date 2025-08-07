@@ -84,6 +84,12 @@ composer require mertcanaydin97/laravel-phpmailer-driver
         'password' => env('MAIL_PASSWORD'),
         'encryption' => env('MAIL_ENCRYPTION', 'tls'),
         'timeout' => env('MAIL_TIMEOUT', 30),
+        'debug' => env('MAIL_DEBUG', false),
+        'debug_level' => env('MAIL_DEBUG_LEVEL', 0),
+        'debug_output' => env('MAIL_DEBUG_OUTPUT', 'error_log'),
+        'ssl_verify_peer' => env('MAIL_SSL_VERIFY_PEER', true),
+        'ssl_verify_peer_name' => env('MAIL_SSL_VERIFY_PEER_NAME', true),
+        'ssl_allow_self_signed' => env('MAIL_SSL_ALLOW_SELF_SIGNED', false),
     ],
 ],
 ```
@@ -1325,6 +1331,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.5** - Complete configuration fixes with all SSL and debug options
 - **v1.1.4** - Enhanced configuration section with complete environment variables mapping
 - **v1.1.3** - Comprehensive README update and documentation fixes
 - **v1.1.2** - Added SSL verification options and enhanced debug settings
