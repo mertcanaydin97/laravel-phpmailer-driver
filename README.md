@@ -199,23 +199,61 @@ Mail::mailer('phpmailer')->to('user@example.com')->send(new WelcomeEmail());
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MAIL_MAILER` | Mail driver to use | `phpmailer` |
-| `MAIL_HOST` | SMTP host | `localhost` |
-| `MAIL_PORT` | SMTP port | `587` |
-| `MAIL_USERNAME` | SMTP username | - |
-| `MAIL_PASSWORD` | SMTP password | - |
-| `MAIL_ENCRYPTION` | Encryption type (`tls` or `ssl`) | `tls` |
-| `MAIL_FROM_ADDRESS` | Default from address | - |
-| `MAIL_FROM_NAME` | Default from name | - |
-| `MAIL_TIMEOUT` | SMTP timeout in seconds | `30` |
-| `MAIL_DEBUG` | Enable SMTP debugging | `false` |
-| `MAIL_DEBUG_LEVEL` | Debug level (0-4) | `0` |
-| `MAIL_DEBUG_OUTPUT` | Debug output method | `error_log` |
-| `MAIL_SSL_VERIFY_PEER` | Verify SSL peer certificate | `true` |
-| `MAIL_SSL_VERIFY_PEER_NAME` | Verify SSL peer name | `true` |
-| `MAIL_SSL_ALLOW_SELF_SIGNED` | Allow self-signed certificates | `false` |
+| Variable | Description | Default | Config Key |
+|----------|-------------|---------|------------|
+| `MAIL_MAILER` | Mail driver to use | `phpmailer` | - |
+| `MAIL_HOST` | SMTP host | `localhost` | `host` |
+| `MAIL_PORT` | SMTP port | `587` | `port` |
+| `MAIL_USERNAME` | SMTP username | - | `username` |
+| `MAIL_PASSWORD` | SMTP password | - | `password` |
+| `MAIL_ENCRYPTION` | Encryption type (`tls` or `ssl`) | `tls` | `encryption` |
+| `MAIL_FROM_ADDRESS` | Default from address | - | `from_address` |
+| `MAIL_FROM_NAME` | Default from name | - | `from_name` |
+| `MAIL_TIMEOUT` | SMTP timeout in seconds | `30` | `timeout` |
+| `MAIL_DEBUG` | Enable SMTP debugging | `false` | `debug` |
+| `MAIL_DEBUG_LEVEL` | Debug level (0-4) | `0` | `debug_level` |
+| `MAIL_DEBUG_OUTPUT` | Debug output method | `error_log` | `debug_output` |
+| `MAIL_SSL_VERIFY_PEER` | Verify SSL peer certificate | `true` | `ssl_verify_peer` |
+| `MAIL_SSL_VERIFY_PEER_NAME` | Verify SSL peer name | `true` | `ssl_verify_peer_name` |
+| `MAIL_SSL_ALLOW_SELF_SIGNED` | Allow self-signed certificates | `false` | `ssl_allow_self_signed` |
+
+### Configuration File
+
+The package uses `config/phpmailer.php` for configuration. You can publish this file using:
+
+```bash
+php artisan vendor:publish --provider="Mertcanaydin97\LaravelPhpMailerDriver\PhpMailerServiceProvider" --tag=phpmailer-config
+```
+
+**Configuration Structure:**
+```php
+<?php
+
+return [
+    'host' => env('MAIL_HOST', 'localhost'),
+    'port' => env('MAIL_PORT', 587),
+    'username' => env('MAIL_USERNAME'),
+    'password' => env('MAIL_PASSWORD'),
+    'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+    'timeout' => env('MAIL_TIMEOUT', 30),
+    
+    // Debug mode for troubleshooting
+    'debug' => env('MAIL_DEBUG', false),
+    
+    // Default from address and name (used if not specified in the message)
+    'from_address' => env('MAIL_FROM_ADDRESS'),
+    'from_name' => env('MAIL_FROM_NAME'),
+    
+    // SSL/TLS verification options
+    'ssl_verify_peer' => env('MAIL_SSL_VERIFY_PEER', true),
+    'ssl_verify_peer_name' => env('MAIL_SSL_VERIFY_PEER_NAME', true),
+    'ssl_allow_self_signed' => env('MAIL_SSL_ALLOW_SELF_SIGNED', false),
+    
+    // Additional debug options
+    'debug_output' => env('MAIL_DEBUG_OUTPUT', 'error_log'), // 'echo', 'error_log', or 'html'
+    'debug_level' => env('MAIL_DEBUG_LEVEL', 0), // 0=off, 1=client messages, 2=client and server messages, 3=connection, 4=low-level data
+];
+```
 
 ### Debug Mode
 
@@ -1287,6 +1325,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.4** - Enhanced configuration section with complete environment variables mapping
 - **v1.1.3** - Comprehensive README update and documentation fixes
 - **v1.1.2** - Added SSL verification options and enhanced debug settings
 - **v1.1.1** - Added comprehensive template usage documentation and fixed template errors
