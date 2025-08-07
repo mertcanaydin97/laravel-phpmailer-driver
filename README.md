@@ -1287,6 +1287,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📊 Version History
 
+- **v1.1.3** - Comprehensive README update and documentation fixes
 - **v1.1.2** - Added SSL verification options and enhanced debug settings
 - **v1.1.1** - Added comprehensive template usage documentation and fixed template errors
 - **v1.1.0** - Added comprehensive error handling, logging, and Laravel native integration
